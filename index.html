@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>KURO | ¡Tu Estilo, Tu Rollo!</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&family=Playfair+Display:ital,wght@0,600;1,400&display=swap" rel="stylesheet">
+    <style>
+        body { background-color: #070707; color: #f3f4f6; font-family: 'Montserrat', sans-serif; }
+        .font-serif-kuro { font-family: 'Playfair Display', serif; }
+        .gold-text { color: #eab308; }
+        .gold-border { border-color: #eab308; }
+        .gold-bg { background-color: #eab308; color: #070707; }
+        [x-cloak] { display: none !important; }
+    </style>
+</head>
+<body x-data="kuroClientApp()" x-init="initApp()" class="min-h-screen flex flex-col justify-between selection:bg-yellow-500 selection:text-black">
+
+    <!-- HEADER CON LOGO OFICIAL -->
+    <header class="sticky top-0 z-50 bg-black/95 backdrop-blur-md border-b border-zinc-800 px-4 py-3">
+        <div class="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
+            <div class="flex items-center gap-3 cursor-pointer" @click="tab = 'inicio'">
+                <img src="20261022_013035.jpg" alt="KURO Logo" class="h-14 w-14 object-contain rounded-lg border border-zinc-800" onerror="this.style.display='none'">
+                <div>
+                    <h1 class="text-2xl font-extrabold tracking-widest text-white leading-none">KURO</h1>
+                    <p class="text-xs font-bold gold-text tracking-wider mt-1">¡TU ESTILO, TU ROLLO!</p>
+                </div>
+            </div>
+
+            <nav class="flex flex-wrap justify-center gap-1 md:gap-2 text-xs md:text-sm">
+                <button @click="tab = 'inicio'" :class="tab==='inicio' ? 'gold-bg font-bold' : 'text-zinc-400 hover:text-white'" class="px-3 py-1.5 rounded-full transition">Inicio</button>
+                <button @click="tab = 'tu-estilo'" :class="tab==='tu-estilo' ? 'gold-bg font-bold' : 'text-zinc-400 hover:text-white'" class="px-3 py-1.5 rounded-full transition">Tu Estilo</button>
+                <button @click="tab = 'catalogo'" :class="tab==='catalogo' ? 'gold-bg font-bold' : 'text-zinc-400 hover:text-white'" class="px-3 py-1.5 rounded-full transition">Especialidades</button>
+                <button @click="tab = 'seleccion'" :class="tab==='seleccion' ? 'gold-bg font-bold' : 'bg-zinc-900 text-yellow-400 border border-yellow-500/40'" class="px-3 py-1.5 rounded-full transition flex items-center gap-1.5">
+                    <span>Tu Orden</span>
+                    <span class="bg-black text-yellow-400 px-2 py-0.5 rounded-full text-xs font-bold" x-text="cart.reduce((a,b)=>a+b.qty,0)">0</span>
+                </button>
+                <button x-show="activeTicket" @click="tab = 'ticket'" :class="tab==='ticket' ? 'gold-bg font-bold' : 'text-emerald-400 border border-emerald-500/40'" class="px-3 py-1.5 rounded-full transition animate-pulse">
+                    Ticket en Vivo
+                </button>
+                <button @click="tab = 'mas'" :class="tab==='mas' ? 'gold-bg font-bold' : 'text-zinc-400 hover:text-white'" class="px-3 py-1.5 rounded-full transition">Contacto</button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="max-w-5xl w-full mx-auto px-4 py-8 flex-1">
+
+        <!-- 1. INICIO -->
+        <section x-show="tab === 'inicio'" x-transition x-cloak class="space-y-10 text-center">
+            <div class="bg-gradient-to-b from-zinc-900/90 to-black border border-zinc-800 rounded-2xl p-8 md:p-14 shadow-2xl">
+                <img src="20261022_013035.jpg" alt="KURO" class="w-44 h-44 mx-auto object-contain mb-6" onerror="this.style.display='none'">
+                <h2 class="font-serif-kuro text-2xl md:text-4xl gold-text tracking-wide max-w-2xl mx-auto leading-relaxed">
+                    "SOMOS TRADICIÓN, SAZÓN Y SABOR EN CADA PLATILLO"
+                </h2>
+                <p class="text-zinc-400 text-sm md:text-base mt-4 max-w-xl mx-auto">
+                    Sistema de Pre-orden Anticipada en Tiempo Real. Diseña tu rollo al gramo o elige nuestras especialidades de la casa.
+                </p>
+                <div class="mt-8 flex flex-wrap justify-center gap-4">
+                    <button @click="tab = 'tu-estilo'" class="gold-bg font-bold px-6 py-3 rounded-xl shadow-lg hover:brightness-110 transition">
+                        ARMAR MI ROLLO ($65 Base)
+                    </button>
+                    <button @click="tab = 'catalogo'" class="bg-zinc-900 border border-zinc-700 text-white font-semibold px-6 py-3 rounded-xl hover:border-yellow-500 transition">
+                        VER ESPECIALIDADES
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-6 text-left">
+                <div class="bg-zinc-900/60 border border-zinc-800/80 p-6 rounded-xl">
+                    <h3 class="font-serif-kuro text-xl gold-text mb-2">QUIÉNES SOMOS</h3>
+                    <p class="text-zinc-300 text-sm leading-relaxed">En Kuro Rolls redefinimos la experiencia del sushi mediante una fusión de técnica tradicional y una audaz propuesta de sabores contemporáneos. Ofrecemos platillos con ingredientes premium y sobria elegancia.</p>
+                </div>
+                <div class="bg-zinc-900/60 border border-zinc-800/80 p-6 rounded-xl">
+                    <h3 class="font-serif-kuro text-xl gold-text mb-2">NUESTRA ESENCIA</h3>
+                    <p class="text-zinc-300 text-sm leading-relaxed">Trabajamos bajo pedido anticipado para garantizar pesca fresca, arroz en su punto exacto y vegetales seleccionados del día para una textura inigualable en cada bocado.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. TU ESTILO, TU ROLLO (CONSTRUCTOR DINÁMICO) -->
+        <section x-show="tab === 'tu-estilo'" x-transition x-cloak class="space-y-8">
+            <div class="text-center border-b border-zinc-800 pb-6">
+                <img src="20261022_013035(1).jpg" alt="Kuro Tu Estilo Tu Rollo" class="h-20 mx-auto object-contain mb-2" onerror="this.style.display='none'">
+                <p class="text-zinc-400 text-sm">Base incluida ($65): <strong class="text-white">Arroz Gohan (200g), Alga Nori, Soya Clásica (1 oz) y Empaque.</strong></p>
+            </div>
+
+            <template x-for="group in customGroups" :key="group.category">
+                <div class="bg-zinc-900/50 border border-zinc-800 rounded-xl p-5">
+                    <h3 class="font-serif-kuro text-lg gold-text border-b border-zinc-800 pb-2 mb-4" x-text="group.category"></h3>
+                    <div class="grid sm:grid-cols-2 gap-3">
+                        <template x-for="ing in group.items" :key="ing.id">
+                            <div class="flex items-center justify-between bg-black/60 border border-zinc-800/90 p-3 rounded-lg hover:border-zinc-700 transition">
+                                <div>
+                                    <p class="font-semibold text-sm text-white" x-text="ing.name"></p>
+                                    <p class="text-xs gold-text font-bold" x-text="'+$' + ing.price"></p>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <button type="button" @click="if(ing.qty > 0) ing.qty--" class="w-8 h-8 rounded-lg bg-zinc-800 text-white font-bold hover:bg-zinc-700">-</button>
+                                    <span class="w-6 text-center font-bold text-sm" x-text="ing.qty">0</span>
+                                    <button type="button" @click="ing.qty++" class="w-8 h-8 rounded-lg gold-bg font-bold">+</button>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </template>
+
+            <!-- Barra flotante de creación -->
+            <div class="sticky bottom-4 bg-zinc-950/95 backdrop-blur border border-yellow-500/40 p-4 rounded-2xl shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div>
+                    <span class="text-xs uppercase tracking-wider text-zinc-400">Total de tu creación:</span>
+                    <div class="text-2xl font-extrabold gold-text" x-text="'$' + customRollPrice()"></div>
+                </div>
+                <button type="button" @click="addCustomRollToCart()" class="w-full sm:w-auto gold-bg font-extrabold px-8 py-3 rounded-xl shadow-lg hover:scale-105 transition">
+                    ¡MI ESTILO, MI ROLLO! (AGREGAR)
+                </button>
+            </div>
+        </section>
+
+        <!-- 3. CATÁLOGO DE ESPECIALIDADES Y ADEREZOS -->
+        <section x-show="tab === 'catalogo'" x-transition x-cloak class="space-y-10">
+            <div class="text-center">
+                <h2 class="font-serif-kuro text-3xl gold-text">Nuestras Especialidades</h2>
+                <p class="text-zinc-400 text-sm mt-1">Obras maestras de la casa (Incluyen 1 oz de Soya Clásica).</p>
+            </div>
+
+            <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <template x-for="spec in specialties" :key="spec.name">
+                    <article class="bg-zinc-900/60 border border-zinc-800 rounded-xl p-5 flex flex-col justify-between hover:border-yellow-500/50 transition">
+                        <div>
+                            <div class="flex justify-between items-start gap-2 mb-2">
+                                <h3 class="font-serif-kuro text-xl text-white font-bold" x-text="spec.name"></h3>
+                                <span class="text-xl font-extrabold gold-text" x-text="'$' + spec.price"></span>
+                            </div>
+                            <p class="text-xs text-zinc-400 mb-1"><strong class="text-zinc-200">PF (Por fuera):</strong> <span x-text="spec.pf"></span></p>
+                            <p class="text-xs text-zinc-400"><strong class="text-zinc-200">PD (Por dentro):</strong> <span x-text="spec.pd"></span></p>
+                        </div>
+                        <button @click="addToCart(spec.name, spec.price, spec.cost, 'Especialidad')" class="mt-5 w-full bg-zinc-800 hover:bg-yellow-500 hover:text-black text-white font-bold py-2.5 rounded-lg text-sm transition">
+                            + Agregar a mi orden
+                        </button>
+                    </article>
+                </template>
+            </div>
+
+            <div class="pt-6 border-t border-zinc-800">
+                <h3 class="font-serif-kuro text-2xl gold-text text-center mb-6">Acompañamientos y Aderezos Extra</h3>
+                <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <template x-for="side in sides" :key="side.name">
+                        <div class="bg-zinc-900/40 border border-zinc-800 p-4 rounded-xl flex items-center justify-between">
+                            <div>
+                                <p class="font-bold text-sm text-white" x-text="side.name"></p>
+                                <p class="text-xs gold-text font-bold" x-text="'$' + side.price"></p>
+                            </div>
+                            <button @click="addToCart(side.name, side.price, side.cost, 'Aderezo')" class="gold-bg font-bold px-3 py-1.5 rounded-lg text-xs">
+                                + Agregar
+                            </button>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. CHECKOUT / PRE-ORDEN -->
+        <section x-show="tab === 'seleccion'" x-transition x-cloak class="max-w-2xl mx-auto space-y-6">
+            <h2 class="font-serif-kuro text-3xl gold-text text-center">Tu Pre-Orden KURO</h2>
+
+            <!-- Lista del Carrito -->
+            <div class="bg-zinc-900/70 border border-zinc-800 rounded-xl p-5 space-y-4">
+                <template x-if="cart.length === 0">
+                    <p class="text-center text-zinc-500 py-6">Tu carrito está vacío. ¡Arma tu rollo o elige una especialidad!</p>
+                </template>
+
+                <template x-for="(item, idx) in cart" :key="idx">
+                    <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
+                        <div class="pr-3">
+                            <p class="font-bold text-sm text-white" x-text="item.name"></p>
+                            <p class="text-xs text-zinc-400" x-show="item.details" x-text="item.details"></p>
+                            <p class="text-xs gold-text font-semibold" x-text="'$' + item.price + ' c/u'"></p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button @click="decrementCart(idx)" class="w-7 h-7 bg-zinc-800 rounded text-xs font-bold">-</button>
+                            <span class="text-sm font-bold w-5 text-center" x-text="item.qty"></span>
+                            <button @click="item.qty++" class="w-7 h-7 gold-bg rounded text-xs font-bold">+</button>
+                        </div>
+                    </div>
+                </template>
+
+                <!-- Cupón Dinámico (ej. KURO 10) -->
+                <div x-show="cart.length > 0" class="pt-2">
+                    <label class="text-xs text-zinc-400 block mb-1">¿Tienes un código promocional de redes?</label>
+                    <div class="flex gap-2">
+                        <input type="text" x-model="couponInput" placeholder="Ej. KURO 10" class="flex-1 bg-black border border-zinc-700 rounded-lg px-3 py-2 text-sm uppercase">
+                        <button type="button" @click="applyCoupon()" class="bg-zinc-800 hover:bg-zinc-700 text-yellow-400 font-bold px-4 py-2 rounded-lg text-xs">
+                            Aplicar
+                        </button>
+                    </div>
+                    <p x-show="couponMessage" class="text-xs mt-1" :class="discountAmount() > 0 ? 'text-emerald-400' : 'text-red-400'" x-text="couponMessage"></p>
+                </div>
+
+                <!-- Totales -->
+                <div x-show="cart.length > 0" class="border-t border-zinc-800 pt-4 space-y-1 text-sm">
+                    <div class="flex justify-between text-zinc-400">
+                        <span>Subtotal:</span>
+                        <span x-text="'$' + cartSubtotal().toFixed(2)"></span>
+                    </div>
+                    <div x-show="discountAmount() > 0" class="flex justify-between text-emerald-400 font-semibold">
+                        <span x-text="'Descuento (' + appliedCouponCode + '):'"></span>
+                        <span x-text="'-$' + discountAmount().toFixed(2)"></span>
+                    </div>
+                    <div class="flex justify-between text-xl font-extrabold gold-text pt-2">
+                        <span>Total a Pagar:</span>
+                        <span x-text="'$' + cartTotal().toFixed(2)"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Formulario de Pre-Orden -->
+            <form x-show="cart.length > 0" @submit.prevent="submitOrder()" class="bg-zinc-900/70 border border-zinc-800 rounded-xl p-6 space-y-4">
+                <div>
+                    <label class="text-xs text-zinc-400 uppercase font-semibold">Nombre Completo *</label>
+                    <input type="text" x-model="checkout.nombre" required placeholder="Ej. Lucio Meza" class="w-full mt-1 bg-black border border-zinc-700 rounded-lg px-3 py-2.5 text-sm focus:border-yellow-500 outline-none">
+                </div>
+
+                <div>
+                    <label class="text-xs text-zinc-400 uppercase font-semibold">Teléfono (WhatsApp a 10 dígitos) *</label>
+                    <input type="tel" x-model="checkout.telefono" required pattern="[0-9]{10,13}" placeholder="4621234567" class="w-full mt-1 bg-black border border-zinc-700 rounded-lg px-3 py-2.5 text-sm focus:border-yellow-500 outline-none">
+                    <span class="text-[11px] text-zinc-500">Aquí recibirás tu confirmación y estatus del pedido.</span>
+                </div>
+
+                <div class="grid sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-xs text-zinc-400 uppercase font-semibold">Modalidad de Entrega *</label>
+                        <select x-model="checkout.modalidad" class="w-full mt-1 bg-black border border-zinc-700 rounded-lg px-3 py-2.5 text-sm">
+                            <option value="Recolección en Punto">Recolección en Punto (Activo)</option>
+                            <option value="Envío a Domicilio (Por cotizar)" :disabled="!config.envio_activo">Envío a Domicilio (Tarifa según distancia)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-xs text-zinc-400 uppercase font-semibold">Día y Horario de Pre-Orden *</label>
+                        <select x-model="checkout.fecha" required class="w-full mt-1 bg-black border border-zinc-700 rounded-lg px-3 py-2.5 text-sm">
+                            <template x-for="f in config.fechas_entrega" :key="f">
+                                <option :value="f" x-text="f"></option>
+                            </template>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-xs text-zinc-400 uppercase font-semibold">Punto de Recolección / Referencia</label>
+                    <input type="text" x-model="checkout.ubicacion" :placeholder="config.punto_recoleccion" class="w-full mt-1 bg-black border border-zinc-700 rounded-lg px-3 py-2.5 text-sm">
+                    <span class="text-[11px] text-yellow-500/80">La ubicación exacta de recolección se te enviará al confirmar tu pedido.</span>
+                </div>
+
+                <div>
+                    <label class="text-xs text-zinc-400 uppercase font-semibold">Método de Pago *</label>
+                    <select x-model="checkout.pago" class="w-full mt-1 bg-black border border-zinc-700 rounded-lg px-3 py-2.5 text-sm">
+                        <option value="efectivo">Efectivo al recoger</option>
+                        <option value="transferencia">Transferencia Bancaria (Datos enviados en privado al confirmar)</option>
+                        <option value="debito">Tarjeta de Débito (Terminal física)</option>
+                        <option value="credito">Tarjeta de Crédito (Terminal física)</option>
+                    </select>
+                </div>
+
+                <button type="submit" :disabled="submitting" class="w-full gold-bg font-extrabold py-3.5 rounded-xl shadow-lg hover:brightness-110 transition text-sm tracking-wide">
+                    <span x-text="submitting ? 'ENVIANDO A COCINA...' : 'ENVIAR PRE-ORDEN A COCINA'"></span>
+                </button>
+            </form>
+        </section>
+
+        <!-- 5. TICKET DIGITAL EN VIVO Y FILTRO DE RESEÑAS -->
+        <section x-show="tab === 'ticket' && activeTicket" x-transition x-cloak class="max-w-md mx-auto">
+            <div class="bg-zinc-900 border border-zinc-700 rounded-2xl p-6 shadow-2xl space-y-6">
+                <div class="text-center border-b border-zinc-800 pb-4">
+                    <span class="text-xs uppercase tracking-widest text-zinc-400">Ticket Digital KURO en Vivo</span>
+                    <h2 class="text-3xl font-extrabold gold-text mt-1" x-text="activeTicket?.folio"></h2>
+                    <p class="text-xs text-zinc-400 mt-1" x-text="activeTicket?.fecha_programada"></p>
+                </div>
+
+                <!-- Barra de Estado en Vivo -->
+                <div class="grid grid-cols-3 gap-2 text-center text-xs font-bold">
+                    <div class="p-2 rounded-lg border" :class="['nuevo','preparando','listo','entregado'].includes(activeTicket?.estado) ? 'border-yellow-500 bg-yellow-500/10 text-yellow-400' : 'border-zinc-800 text-zinc-600'">
+                        1. Recibido
+                    </div>
+                    <div class="p-2 rounded-lg border" :class="['preparando','listo','entregado'].includes(activeTicket?.estado) ? 'border-yellow-500 bg-yellow-500/10 text-yellow-400' : 'border-zinc-800 text-zinc-600'">
+                        2. En Cocina
+                    </div>
+                    <div class="p-2 rounded-lg border" :class="['listo','entregado'].includes(activeTicket?.estado) ? 'border-emerald-500 bg-emerald-500/10 text-emerald-400' : 'border-zinc-800 text-zinc-600'">
+                        3. ¡Listo!
+                    </div>
+                </div>
+
+                <!-- Aviso de Seguridad para Transferencia -->
+                <div x-show="activeTicket?.metodo_pago === 'transferencia'" class="bg-zinc-950 border border-yellow-500/40 p-3 rounded-xl text-xs text-zinc-300">
+                    <strong class="gold-text block mb-1">🔒 Seguridad en Transferencia:</strong>
+                    Por tu seguridad, nuestros datos bancarios Stori no se muestran públicamente aquí. Te llegarán directamente en nuestro mensaje de confirmación por WhatsApp al aceptar tu orden.
+                </div>
+
+                <!-- Detalle de Productos -->
+                <div class="space-y-2 text-xs border-t border-b border-zinc-800 py-4">
+                    <template x-for="it in activeTicket?.items" :key="it.name">
+                        <div class="flex justify-between">
+                            <span class="text-zinc-200"><strong x-text="it.qty + 'x '"></strong><span x-text="it.name"></span></span>
+                            <span class="font-bold text-white" x-text="'$' + (it.price * it.qty).toFixed(2)"></span>
+                        </div>
+                    </template>
+                    <div x-show="activeTicket?.descuento > 0" class="flex justify-between text-emerald-400 pt-2">
+                        <span>Descuento Cupón:</span>
+                        <span x-text="'-$' + Number(activeTicket?.descuento).toFixed(2)"></span>
+                    </div>
+                    <div class="flex justify-between text-base font-extrabold gold-text pt-2">
+                        <span>TOTAL:</span>
+                        <span x-text="'$' + Number(activeTicket?.total).toFixed(2)"></span>
+                    </div>
+                </div>
+
+                <!-- Módulo de Calificación Inteligente (4-5 a Google, 1-3 Privado a ti) -->
+                <div class="text-center space-y-3 pt-2">
+                    <p class="text-sm font-bold text-white">¿Cómo fue tu experiencia hoy?</p>
+                    <div class="flex justify-center gap-2 text-2xl">
+                        <template x-for="star in [1,2,3,4,5]" :key="star">
+                            <button @click="rateOrder(star)" :class="(activeTicket?.calificacion || 0) >= star ? 'text-yellow-400 scale-110' : 'text-zinc-700'" class="transition transform hover:scale-125">★</button>
+                        </template>
+                    </div>
+
+                    <!-- 4 o 5 Estrellas -> Google Maps -->
+                    <div x-show="activeTicket?.calificacion >= 4" class="bg-emerald-950/40 border border-emerald-500/40 p-3 rounded-xl text-xs space-y-2">
+                        <p class="text-emerald-300 font-semibold">¡Gracias! Nos alegra que disfrutaras tu rollo.</p>
+                        <template x-if="config.google_maps_link">
+                            <a :href="config.google_maps_link" target="_blank" class="inline-block gold-bg font-bold px-4 py-2 rounded-lg">Déjanos tu reseña en Google ⭐</a>
+                        </template>
+                        <template x-if="!config.google_maps_link">
+                            <p class="text-zinc-400">Tu calificación positiva quedó registrada en KURO.</p>
+                        </template>
+                    </div>
+
+                    <!-- 1 a 3 Estrellas -> Buzón Privado Interno -->
+                    <div x-show="activeTicket?.calificacion > 0 && activeTicket?.calificacion <= 3" class="bg-red-950/30 border border-red-500/40 p-3 rounded-xl text-xs space-y-2 text-left">
+                        <p class="text-red-300 font-semibold">Queremos mejorar. Este mensaje llegará en privado directo al dueño:</p>
+                        <textarea x-model="privateFeedback" rows="2" placeholder="¿Qué falló en tu pedido?" class="w-full bg-black border border-zinc-700 rounded p-2 text-white"></textarea>
+                        <button @click="sendPrivateFeedback()" class="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-1.5 rounded">Enviar reporte privado</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 6. CONTACTO -->
+        <section x-show="tab === 'mas'" x-transition x-cloak class="max-w-xl mx-auto text-center space-y-6">
+            <img src="20261022_013035.jpg" alt="KURO" class="w-32 h-32 mx-auto object-contain" onerror="this.style.display='none'">
+            <h2 class="font-serif-kuro text-2xl gold-text">SOMOS TRADICIÓN, SAZÓN Y SABOR EN CADA PLATILLO</h2>
+            <div class="grid gap-3">
+                <a href="https://wa.me/524622431013?text=Hola%20KURO,%20necesito%20soporte%20con%20mi%20pre-orden..." target="_blank" class="border border-yellow-500 text-yellow-400 font-bold py-3 rounded-xl hover:bg-yellow-500 hover:text-black transition">
+                    Soporte Directo por WhatsApp
+                </a>
+                <a href="https://wa.me/524622431013?text=Hola%20KURO,%20¡tengo%20una%20idea%20genial%20para%20un%20nuevo%20rollo!" target="_blank" class="bg-zinc-900 border border-zinc-700 text-white font-semibold py-3 rounded-xl hover:border-yellow-500 transition">
+                    Proponer Idea de Nuevo Rollo
+                </a>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="border-t border-zinc-900 py-6 text-center text-xs text-zinc-500">
+        <p class="gold-text font-bold">KURO &copy; 2026 — ¡TU ESTILO, TU ROLLO!</p>
+    </footer>
+
+    <script>
+        // CONEXIÓN EN TIEMPO REAL A TU PROYECTO DE SUPABASE
+        const SUPABASE_URL = 'https://lsmuqgwtiooetxfieqod.supabase.co'; 
+        const SUPABASE_ANON_KEY = 'sb_publishable_CaJMGbjeOwoXJladyQ39tA_HsmS1meK';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        function kuroClientApp() {
+            return {
+                tab: 'inicio',
+                cart: [],
+                couponInput: '',
+                appliedCouponCode: '',
+                couponMessage: '',
+                privateFeedback: '',
+                activeTicket: null,
+                submitting: false,
+
+                config: {
+                    fechas_entrega: [
+                        'Viernes (Pre-orden 2:00 PM - 9:00 PM)',
+                        'Sábado (Pre-orden 2:00 PM - 9:00 PM)',
+                        'Domingo (Pre-orden 2:00 PM - 8:00 PM)'
+                    ],
+                    punto_recoleccion: 'Punto de Recolección KURO (Se envía ubicación al confirmar)',
+                    envio_activo: false,
+                    cupon_codigo: 'KURO 10',
+                    cupon_descuento_pct: 10,
+                    cupon_activo: true,
+                    google_maps_link: '',
+                    whatsapp_negocio: '524622431013'
+                },
+
+                checkout: {
+                    nombre: '',
+                    telefono: '',
+                    modalidad: 'Recolección en Punto',
+                    fecha: 'Viernes (Pre-orden 2:00 PM - 9:00 PM)',
+                    ubicacion: '',
+                    pago: 'efectivo'
+                },
+
+                customGroups: [
+                    {
+                        category: 'Preparación y Arroz (Base 200g + Alga Nori incluida)',
+                        items: [
+                            { id: 'emp', name: 'Empanizado Crujiente', price: 5, cost: 3.00, qty: 0 },
+                            { id: 'arr25', name: 'Arroz Extra 25g', price: 6, cost: 0.56, qty: 0 },
+                            { id: 'arr50', name: 'Arroz Extra 50g', price: 10, cost: 1.13, qty: 0 }
+                        ]
+                    },
+                    {
+                        category: 'Proteínas (30g por porción)',
+                        items: [
+                            { id: 'sal', name: 'Salmón (30g)', price: 20, cost: 9.80, qty: 0 },
+                            { id: 'atu', name: 'Atún (30g)', price: 20, cost: 7.80, qty: 0 },
+                            { id: 'arr', name: 'Arrachera (30g)', price: 10, cost: 5.46, qty: 0 },
+                            { id: 'cam', name: 'Camarón (30g)', price: 10, cost: 5.76, qty: 0 },
+                            { id: 'pol', name: 'Pollo (30g)', price: 10, cost: 3.30, qty: 0 }
+                        ]
+                    },
+                    {
+                        category: 'Vegetales y Picantes (30g)',
+                        items: [
+                            { id: 'sur', name: 'Surimi (30g)', price: 5, cost: 2.00, qty: 0 },
+                            { id: 'pep', name: 'Pepino (30g)', price: 5, cost: 2.00, qty: 0 },
+                            { id: 'agu', name: 'Aguacate (30g)', price: 5, cost: 3.50, qty: 0 },
+                            { id: 'chi', name: 'Chile Caribe (30g)', price: 5, cost: 2.00, qty: 0 }
+                        ]
+                    },
+                    {
+                        category: 'Quesos (30g)',
+                        items: [
+                            { id: 'phi', name: 'Queso Philadelphia (30g)', price: 7, cost: 5.40, qty: 0 },
+                            { id: 'man', name: 'Queso Manchego (30g)', price: 7, cost: 5.20, qty: 0 }
+                        ]
+                    },
+                    {
+                        category: 'Acompañamientos y Aderezos Extra (1 oz y 2 oz)',
+                        items: [
+                            { id: 'cc1', name: 'Chipotle Cream 1 oz', price: 6, cost: 2.40, qty: 0 },
+                            { id: 'cc2', name: 'Chipotle Cream 2 oz', price: 9, cost: 4.80, qty: 0 },
+                            { id: 'sc1', name: 'Sriracha Cream 1 oz', price: 6, cost: 2.20, qty: 0 },
+                            { id: 'sc2', name: 'Sriracha Cream 2 oz', price: 9, cost: 4.40, qty: 0 },
+                            { id: 'so1', name: 'Soya Clásica Extra 1 oz', price: 5, cost: 3.00, qty: 0 },
+                            { id: 'so2', name: 'Soya Clásica Extra 2 oz', price: 7, cost: 5.00, qty: 0 },
+                            { id: 'sp1', name: 'Soya Picante 1 oz', price: 6, cost: 4.00, qty: 0 },
+                            { id: 'sp2', name: 'Soya Picante 2 oz', price: 8, cost: 6.00, qty: 0 }
+                        ]
+                    }
+                ],
+
+                specialties: [
+                    { name: 'Volcano Roll', price: 94, cost: 36.56, pf: 'Queso manchego picante', pd: 'Aguacate, arrachera y queso philadelphia' },
+                    { name: 'Steak Roll', price: 95, cost: 34.12, pf: 'Empanizado', pd: 'Doble porción de arrachera y queso manchego' },
+                    { name: 'California Roll', price: 88, cost: 27.90, pf: 'Ajonjolí bicolor', pd: 'Surimi, queso philadelphia, pepino y aguacate' },
+                    { name: 'Jaiba Roll', price: 85, cost: 28.90, pf: 'Empanizado', pd: 'Surimi, philadelphia y aguacate' },
+                    { name: 'Uramaki Roll', price: 92, cost: 32.66, pf: 'Alga nori entera', pd: 'Queso philadelphia, aguacate, pepino y camarón' },
+                    { name: 'Classic Roll', price: 98, cost: 37.92, pf: 'Empanizado', pd: 'Queso manchego, arrachera, camarón y aguacate' }
+                ],
+
+                sides: [
+                    { name: 'Chipotle Cream 1 oz', price: 6, cost: 2.40 },
+                    { name: 'Chipotle Cream 2 oz', price: 9, cost: 4.80 },
+                    { name: 'Sriracha Cream 1 oz', price: 6, cost: 2.20 },
+                    { name: 'Sriracha Cream 2 oz', price: 9, cost: 4.40 },
+                    { name: 'Soya Clásica Extra 1 oz', price: 5, cost: 3.00 },
+                    { name: 'Soya Clásica Extra 2 oz', price: 7, cost: 5.00 },
+                    { name: 'Soya Picante 1 oz', price: 6, cost: 4.00 },
+                    { name: 'Soya Picante 2 oz', price: 8, cost: 6.00 }
+                ],
+
+                async initApp() {
+                    // 1. Cargar configuración desde Supabase
+                    const { data: cfgData } = await supabaseClient.from('kuro_config').select('*').eq('id', 1).single();
+                    if (cfgData) {
+                        this.config = cfgData;
+                        localStorage.setItem('kuro_config', JSON.stringify(cfgData));
+                    } else {
+                        const savedCfg = localStorage.getItem('kuro_config');
+                        if (savedCfg) this.config = JSON.parse(savedCfg);
+                    }
+                    this.checkout.fecha = this.config.fechas_entrega[0] || '';
+
+                    // 2. Escuchar actualizaciones en tiempo real desde Supabase
+                    supabaseClient.channel('kuro-client-channel')
+                        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'kuro_pedidos' }, payload => {
+                            if (this.activeTicket && payload.new.folio === this.activeTicket.folio) {
+                                this.activeTicket = payload.new;
+                            }
+                        })
+                        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'kuro_config' }, payload => {
+                            this.config = payload.new;
+                            this.checkout.fecha = this.config.fechas_entrega[0] || '';
+                        })
+                        .subscribe();
+
+                    // Respaldo LocalStorage entre pestañas
+                    window.addEventListener('storage', () => {
+                        const cfg = localStorage.getItem('kuro_config');
+                        if (cfg) this.config = JSON.parse(cfg);
+                        if (this.activeTicket) {
+                            const orders = JSON.parse(localStorage.getItem('kuro_pedidos') || '[]');
+                            const updated = orders.find(o => o.folio === this.activeTicket.folio);
+                            if (updated) this.activeTicket = updated;
+                        }
+                    });
+                },
+
+                customRollPrice() {
+                    let extras = 0;
+                    this.customGroups.forEach(g => g.items.forEach(i => extras += (i.price * i.qty)));
+                    return 65 + extras;
+                },
+
+                customRollCost() {
+                    let extrasCost = 0;
+                    this.customGroups.forEach(g => g.items.forEach(i => extrasCost += (i.cost * i.qty)));
+                    return Number((15.00 + extrasCost).toFixed(2));
+                },
+
+                addCustomRollToCart() {
+                    let selected = [];
+                    this.customGroups.forEach(g => g.items.forEach(i => {
+                        if (i.qty > 0) selected.push(`${i.qty}x ${i.name}`);
+                    }));
+                    const details = selected.length > 0 ? selected.join(', ') : 'Solo base (Arroz 200g + Alga)';
+                    this.cart.push({
+                        name: 'Rollo Personalizado (Tu Estilo)',
+                        details: details,
+                        price: this.customRollPrice(),
+                        cost: this.customRollCost(),
+                        qty: 1
+                    });
+                    this.customGroups.forEach(g => g.items.forEach(i => i.qty = 0));
+                    this.tab = 'seleccion';
+                },
+
+                addToCart(name, price, cost, category) {
+                    const existing = this.cart.find(i => i.name === name && !i.details);
+                    if (existing) {
+                        existing.qty++;
+                    } else {
+                        this.cart.push({ name, details: category, price, cost, qty: 1 });
+                    }
+                },
+
+                decrementCart(idx) {
+                    if (this.cart[idx].qty > 1) this.cart[idx].qty--;
+                    else this.cart.splice(idx, 1);
+                },
+
+                cartSubtotal() {
+                    return this.cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
+                },
+
+                cartProductionCost() {
+                    return Number(this.cart.reduce((sum, i) => sum + (i.cost * i.qty), 0).toFixed(2));
+                },
+
+                applyCoupon() {
+                    const cleanInput = this.couponInput.trim().toUpperCase();
+                    const activeCode = (this.config.cupon_codigo || 'KURO 10').trim().toUpperCase();
+                    if (this.config.cupon_activo && cleanInput === activeCode) {
+                        this.appliedCouponCode = activeCode;
+                        this.couponMessage = `¡Cupón ${activeCode} aplicado (-${this.config.cupon_descuento_pct}%)!`;
+                    } else {
+                        this.appliedCouponCode = '';
+                        this.couponMessage = 'Código inválido o expirado.';
+                    }
+                },
+
+                discountAmount() {
+                    if (!this.appliedCouponCode) return 0;
+                    return Number((this.cartSubtotal() * (this.config.cupon_descuento_pct / 100)).toFixed(2));
+                },
+
+                cartTotal() {
+                    return Math.max(0, this.cartSubtotal() - this.discountAmount());
+                },
+
+                async submitOrder() {
+                    this.submitting = true;
+                    const folio = 'KR-' + Math.floor(100 + Math.random() * 900);
+                    const subtotal = this.cartSubtotal();
+                    const descuento = this.discountAmount();
+                    const total = this.cartTotal();
+                    const costo_produccion = this.cartProductionCost();
+                    const utilidad_neta = Number((total - costo_produccion).toFixed(2));
+
+                    const newOrder = {
+                        folio,
+                        cliente_nombre: this.checkout.nombre,
+                        cliente_telefono: this.checkout.telefono.replace(/\D/g, ''),
+                        modalidad_entrega: this.checkout.modalidad,
+                        ubicacion_entrega: this.checkout.ubicacion || this.config.punto_recoleccion,
+                        fecha_programada: this.checkout.fecha,
+                        metodo_pago: this.checkout.pago,
+                        pagado: false,
+                        estado: 'nuevo',
+                        items: JSON.parse(JSON.stringify(this.cart)),
+                        subtotal,
+                        descuento,
+                        cupon_usado: this.appliedCouponCode || null,
+                        total,
+                        costo_produccion,
+                        utilidad_neta,
+                        calificacion: 0,
+                        comentario_privado: ''
+                    };
+
+                    // Guardar en Supabase en tiempo real
+                    const { data, error } = await supabaseClient.from('kuro_pedidos').insert([newOrder]).select().single();
+
+                    const savedOrder = data || { ...newOrder, id: String(Date.now()), created_at: new Date().toISOString() };
+
+                    // Respaldo en LocalStorage
+                    const orders = JSON.parse(localStorage.getItem('kuro_pedidos') || '[]');
+                    orders.unshift(savedOrder);
+                    localStorage.setItem('kuro_pedidos', JSON.stringify(orders));
+
+                    this.activeTicket = savedOrder;
+                    this.cart = [];
+                    this.appliedCouponCode = '';
+                    this.couponInput = '';
+                    this.submitting = false;
+                    this.tab = 'ticket';
+                },
+
+                async rateOrder(stars) {
+                    if (!this.activeTicket) return;
+                    this.activeTicket.calificacion = stars;
+                    await this.syncTicketUpdate();
+                },
+
+                async sendPrivateFeedback() {
+                    if (!this.activeTicket) return;
+                    this.activeTicket.comentario_privado = this.privateFeedback;
+                    await this.syncTicketUpdate();
+                    alert('Gracias. Tu mensaje fue enviado en privado a la administración de KURO.');
+                },
+
+                async syncTicketUpdate() {
+                    await supabaseClient.from('kuro_pedidos')
+                        .update({ calificacion: this.activeTicket.calificacion, comentario_privado: this.activeTicket.comentario_privado })
+                        .eq('folio', this.activeTicket.folio);
+
+                    const orders = JSON.parse(localStorage.getItem('kuro_pedidos') || '[]');
+                    const idx = orders.findIndex(o => o.folio === this.activeTicket.folio);
+                    if (idx !== -1) {
+                        orders[idx] = this.activeTicket;
+                        localStorage.setItem('kuro_pedidos', JSON.stringify(orders));
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>
