@@ -61,7 +61,7 @@
                 </p>
                 <div class="mt-8 flex flex-wrap justify-center gap-4">
                     <button @click="tab = 'tu-estilo'" class="gold-bg font-bold px-6 py-3 rounded-xl shadow-lg hover:brightness-110 transition">
-                        ARMAR MI ROLLO ($65 Base)
+                        ARMAR MI ROLLO
                     </button>
                     <button @click="tab = 'catalogo'" class="bg-zinc-900 border border-zinc-700 text-white font-semibold px-6 py-3 rounded-xl hover:border-yellow-500 transition">
                         VER ESPECIALIDADES
@@ -85,7 +85,7 @@
         <section x-show="tab === 'tu-estilo'" x-transition x-cloak class="space-y-8">
             <div class="text-center border-b border-zinc-800 pb-6">
                 <img src="20261022_013035(1).jpg" alt="Kuro Tu Estilo Tu Rollo" class="h-20 mx-auto object-contain mb-2" onerror="this.style.display='none'">
-                <p class="text-zinc-400 text-sm">Base incluida ($65): <strong class="text-white">Arroz Gohan (200g), Alga Nori, Soya Clásica (1 oz) y Empaque.</strong></p>
+                <p class="text-zinc-400 text-sm">Base incluida : <strong class="text-white">Arroz Gohan (200g), Alga Nori, Soya Clásica (1 oz) y Empaque.</strong></p>
             </div>
 
             <template x-for="group in customGroups" :key="group.category">
@@ -193,7 +193,7 @@
                 <div x-show="cart.length > 0" class="pt-2">
                     <label class="text-xs text-zinc-400 block mb-1">¿Tienes un código promocional de redes?</label>
                     <div class="flex gap-2">
-                        <input type="text" x-model="couponInput" placeholder="Ej. KURO 10" class="flex-1 bg-black border border-zinc-700 rounded-lg px-3 py-2 text-sm uppercase">
+                        <input type="text" x-model="couponInput" placeholder="Escribe tu codigo promocional" class="flex-1 bg-black border border-zinc-700 rounded-lg px-3 py-2 text-sm uppercase">
                         <button type="button" @click="applyCoupon()" class="bg-zinc-800 hover:bg-zinc-700 text-yellow-400 font-bold px-4 py-2 rounded-lg text-xs">
                             Aplicar
                         </button>
@@ -222,7 +222,7 @@
             <form x-show="cart.length > 0" @submit.prevent="submitOrder()" class="bg-zinc-900/70 border border-zinc-800 rounded-xl p-6 space-y-4">
                 <div>
                     <label class="text-xs text-zinc-400 uppercase font-semibold">Nombre Completo *</label>
-                    <input type="text" x-model="checkout.nombre" required placeholder="Ej. Lucio Meza" class="w-full mt-1 bg-black border border-zinc-700 rounded-lg px-3 py-2.5 text-sm focus:border-yellow-500 outline-none">
+                    <input type="text" x-model="checkout.nombre" required placeholder="Ej. Fausto Gonzalez Villanueva" class="w-full mt-1 bg-black border border-zinc-700 rounded-lg px-3 py-2.5 text-sm focus:border-yellow-500 outline-none">
                 </div>
 
                 <div>
@@ -339,7 +339,7 @@
 
                     <!-- 1 a 3 Estrellas -> Buzón Privado Interno -->
                     <div x-show="activeTicket?.calificacion > 0 && activeTicket?.calificacion <= 3" class="bg-red-950/30 border border-red-500/40 p-3 rounded-xl text-xs space-y-2 text-left">
-                        <p class="text-red-300 font-semibold">Queremos mejorar. Este mensaje llegará en privado directo al dueño:</p>
+                        <p class="text-red-300 font-semibold">Queremos mejorar para ti. Este mensaje llegará en privado directo al dueño:</p>
                         <textarea x-model="privateFeedback" rows="2" placeholder="¿Qué falló en tu pedido?" class="w-full bg-black border border-zinc-700 rounded p-2 text-white"></textarea>
                         <button @click="sendPrivateFeedback()" class="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-1.5 rounded">Enviar reporte privado</button>
                     </div>
@@ -349,7 +349,7 @@
 
         <!-- 6. CONTACTO -->
         <section x-show="tab === 'mas'" x-transition x-cloak class="max-w-xl mx-auto text-center space-y-6">
-            <img src="20261022_013035.jpg" alt="KURO" class="w-32 h-32 mx-auto object-contain" onerror="this.style.display='none'">
+            <img src="./logos/log_dor.png" alt="KURO" class="w-32 h-32 mx-auto object-contain" onerror="this.style.display='none'">
             <h2 class="font-serif-kuro text-2xl gold-text">SOMOS TRADICIÓN, SAZÓN Y SABOR EN CADA PLATILLO</h2>
             <div class="grid gap-3">
                 <a href="https://wa.me/524622431013?text=Hola%20KURO,%20necesito%20soporte%20con%20mi%20pre-orden..." target="_blank" class="border border-yellow-500 text-yellow-400 font-bold py-3 rounded-xl hover:bg-yellow-500 hover:text-black transition">
@@ -357,6 +357,8 @@
                 </a>
                 <a href="https://wa.me/524622431013?text=Hola%20KURO,%20¡tengo%20una%20idea%20genial%20para%20un%20nuevo%20rollo!" target="_blank" class="bg-zinc-900 border border-zinc-700 text-white font-semibold py-3 rounded-xl hover:border-yellow-500 transition">
                     Proponer Idea de Nuevo Rollo
+                  <a href="https://wa.me/524622431013?text=Hola%20KURO,%20¡quiero%20hacer%20una%20cotización%20con%20ustedes!" target="_blank" class="bg-zinc-900 border border-zinc-700 text-white font-semibold py-3 rounded-xl hover:border-yellow-500 transition">
+                    ¿Tienes Alugn evento? Contactanos. 
                 </a>
             </div>
         </section>
@@ -364,7 +366,7 @@
     </main>
 
     <footer class="border-t border-zinc-900 py-6 text-center text-xs text-zinc-500">
-        <p class="gold-text font-bold">KURO &copy; 2026 — ¡TU ESTILO, TU ROLLO!</p>
+        <p class="gold-text font-bold">KURO &copy; 2025 — ¡TU ESTILO, TU ROLLO!</p>
     </footer>
 
     <script>
