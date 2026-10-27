@@ -7,6 +7,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- LIBRERÍA PARA GENERAR EXCEL -->
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         body { background-color: #09090b; color: #f4f4f5; font-family: 'Montserrat', sans-serif; }
@@ -16,7 +18,7 @@
 </head>
 <body x-data="kuroAdminApp()" x-init="initAdmin()" class="min-h-screen">
 
-    <!-- BARRA DE MÓDULOS ESTILO VIDEO -->
+    <!-- BARRA DE MÓDULOS -->
     <header class="bg-black border-b border-zinc-800 px-6 py-4 sticky top-0 z-50">
         <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
             <div class="flex items-center gap-3">
@@ -32,7 +34,7 @@
 
             <nav class="flex flex-wrap gap-2 text-xs font-bold">
                 <button @click="view = 'cocina'" :class="view==='cocina' ? 'gold-bg' : 'bg-zinc-900 text-zinc-400'" class="px-4 py-2 rounded-xl transition">
-                    1. Cocina (KDS) (<span x-text="orders.filter(o=>o.estado!=='entregado').length"></span>)
+                    1. Cocina (KDS) (<span x-text="pedidosTurno().filter(o=>o.estado!=='entregado' && o.estado!=='cancelado').length"></span>)
                 </button>
                 <button @click="view = 'cobro'" :class="view==='cobro' ? 'gold-bg' : 'bg-zinc-900 text-zinc-400'" class="px-4 py-2 rounded-xl transition">
                     2. Cobro y Corte
@@ -41,7 +43,7 @@
                     3. Clientes y Cupón
                 </button>
                 <button @click="view = 'numeros'" :class="view==='numeros' ? 'gold-bg' : 'bg-zinc-900 text-zinc-400'" class="px-4 py-2 rounded-xl transition">
-                    4. Números y Food Cost
+                    4. Números (Turno)
                 </button>
                 <button @click="view = 'asesor'" :class="view==='asesor' ? 'gold-bg' : 'bg-zinc-900 text-zinc-400'" class="px-4 py-2 rounded-xl transition">
                     5. Asesor IA + Pre-Orden
@@ -52,9 +54,9 @@
 
     <main class="max-w-7xl mx-auto p-6">
 
-        <!-- MÓDULO 1: PANTALLA DE COCINA (KDS) Y WHATSAPP PRIVADO -->
+        <!-- MÓDULO 1: COCINA -->
         <section x-show="view === 'cocina'" x-cloak class="grid md:grid-cols-3 gap-6">
-            <!-- Columna Nuevos -->
+            <!-- Nuevos -->
             <div class="bg-zinc-900/60 border border-zinc-800 rounded-2xl p-4">
                 <h2 class="font-extrabold text-sm uppercase tracking-wider text-yellow-400 mb-4 flex justify-between">
                     <span>Nuevas Pre-Órdenes</span>
@@ -83,15 +85,20 @@
                                 <span>Total: <span class="text-yellow-400" x-text="'$' + Number(ord.total).toFixed(2)"></span></span>
                                 <span class="text-xs text-emerald-400" x-text="'Utilidad: $' + Number(ord.utilidad_neta).toFixed(2)"></span>
                             </div>
-                            <button @click="acceptAndNotifyWhatsApp(ord)" class="w-full gold-bg font-extrabold py-2.5 rounded-lg text-xs hover:brightness-110 transition">
-                                ✓ ACEPTAR + ENVIAR CONFIRMACIÓN WHATSAPP
-                            </button>
+                            <div class="flex gap-2">
+                                <button @click="acceptAndNotifyWhatsApp(ord)" class="w-full gold-bg font-extrabold py-2.5 rounded-lg text-xs hover:brightness-110 transition">
+                                    ✓ ACEPTAR
+                                </button>
+                                <button @click="cancelOrder(ord)" class="bg-red-600/20 text-red-500 border border-red-500/50 hover:bg-red-600 hover:text-white font-extrabold py-2.5 px-3 rounded-lg text-xs transition" title="Cancelar Pedido">
+                                    ❌ CANCELAR
+                                </button>
+                            </div>
                         </div>
                     </template>
                 </div>
             </div>
 
-            <!-- Columna En Preparación -->
+            <!-- En Preparación -->
             <div class="bg-zinc-900/60 border border-zinc-800 rounded-2xl p-4">
                 <h2 class="font-extrabold text-sm uppercase tracking-wider text-blue-400 mb-4 flex justify-between">
                     <span>En Preparación</span>
@@ -110,14 +117,14 @@
                                 </template>
                             </div>
                             <button @click="markReadyAndNotify(ord)" class="w-full bg-emerald-500 text-black font-extrabold py-2 rounded-lg text-xs">
-                                🔔 MARCAR LISTO + AVISAR POR WHATSAPP
+                                🔔 MARCAR LISTO + AVISAR
                             </button>
                         </div>
                     </template>
                 </div>
             </div>
 
-            <!-- Columna Listos para Entrega / Cobro -->
+            <!-- Listos para Entrega -->
             <div class="bg-zinc-900/60 border border-zinc-800 rounded-2xl p-4">
                 <h2 class="font-extrabold text-sm uppercase tracking-wider text-emerald-400 mb-4 flex justify-between">
                     <span>Listos para Recolección</span>
@@ -140,10 +147,10 @@
             </div>
         </section>
 
-        <!-- MÓDULO 2: COBRO Y CORTE DE CAJA AUTOMÁTICO -->
+        <!-- MÓDULO 2: COBRO Y CORTE -->
         <section x-show="view === 'cobro'" x-cloak class="grid md:grid-cols-2 gap-6">
             <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 space-y-4">
-                <h2 class="text-xl font-extrabold text-yellow-400">Turno Actual (Corte Automático)</h2>
+                <h2 class="text-xl font-extrabold text-yellow-400">Turno Actual (Ventas del Día)</h2>
                 <div class="flex items-center justify-between text-sm">
                     <span class="text-zinc-400">Fondo de Caja Inicial:</span>
                     <input type="number" x-model.number="fondoCaja" class="bg-black border border-zinc-700 rounded px-3 py-1 w-28 text-right font-bold">
@@ -154,11 +161,11 @@
                         <span class="font-bold text-white" x-text="'$' + sumByPayment('efectivo').toFixed(2)"></span>
                     </div>
                     <div class="flex justify-between">
-                        <span>Transferencias (Stori 646180402320828145):</span>
+                        <span>Transferencias (Stori):</span>
                         <span class="font-bold text-white" x-text="'$' + sumByPayment('transferencia').toFixed(2)"></span>
                     </div>
                     <div class="flex justify-between">
-                        <span>Terminal Física (Débito + Crédito):</span>
+                        <span>Terminal Física (Tarjetas):</span>
                         <span class="font-bold text-white" x-text="'$' + (sumByPayment('debito') + sumByPayment('credito')).toFixed(2)"></span>
                     </div>
                 </div>
@@ -168,19 +175,25 @@
                 </div>
             </div>
 
-            <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 space-y-4">
-                <h2 class="text-xl font-extrabold text-white">Cuadrar Efectivo Físico</h2>
+            <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 flex flex-col justify-between">
                 <div>
-                    <label class="text-xs text-zinc-400">Efectivo contado en billetes y monedas:</label>
-                    <input type="number" x-model.number="efectivoContado" class="w-full mt-1 bg-black border border-zinc-700 rounded-lg px-3 py-2 text-lg font-bold">
+                    <h2 class="text-xl font-extrabold text-white mb-4">Cuadrar y Cerrar Turno</h2>
+                    <div>
+                        <label class="text-xs text-zinc-400">Efectivo físico contado en caja:</label>
+                        <input type="number" x-model.number="efectivoContado" class="w-full mt-1 bg-black border border-zinc-700 rounded-lg px-3 py-2 text-lg font-bold mb-4">
+                    </div>
+                    <div class="p-4 rounded-xl border mb-4" :class="diferenciaCaja() === 0 ? 'border-emerald-500 bg-emerald-950/30 text-emerald-400' : 'border-red-500 bg-red-950/30 text-red-400'">
+                        <p class="text-sm font-extrabold" x-text="'Diferencia: $' + diferenciaCaja().toFixed(2)"></p>
+                    </div>
                 </div>
-                <div class="p-4 rounded-xl border" :class="diferenciaCaja() === 0 ? 'border-emerald-500 bg-emerald-950/30 text-emerald-400' : 'border-red-500 bg-red-950/30 text-red-400'">
-                    <p class="text-sm font-extrabold" x-text="'Diferencia: $' + diferenciaCaja().toFixed(2)"></p>
-                </div>
+                <!-- BOTÓN DE CORTE -->
+                <button @click="realizarCorte()" class="w-full bg-red-600 hover:bg-red-700 text-white font-extrabold py-3.5 rounded-xl shadow-lg transition transform hover:scale-[1.02]">
+                    📥 REALIZAR CORTE Y DESCARGAR EXCEL
+                </button>
             </div>
         </section>
 
-        <!-- MÓDULO 3: BASE DE CLIENTES (CRM) Y CUPÓN CAMBIANTE -->
+        <!-- MÓDULO 3: CLIENTES -->
         <section x-show="view === 'clientes'" x-cloak class="space-y-6">
             <div class="bg-zinc-900 border border-yellow-500/40 rounded-2xl p-6 flex flex-wrap items-end justify-between gap-4">
                 <div>
@@ -203,14 +216,15 @@
             </div>
 
             <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
-                <h3 class="font-extrabold text-lg mb-4">Directorio Automático de Clientes (<span x-text="crmClients().length"></span>)</h3>
+                <h3 class="font-extrabold text-lg mb-4">Directorio Histórico de Clientes (<span x-text="crmClients().length"></span>)</h3>
+                <p class="text-xs text-zinc-400 mb-4">Aquí se guarda el historial de por vida, sin importar los cortes de caja.</p>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-xs">
                         <thead class="text-zinc-400 border-b border-zinc-800">
                             <tr>
                                 <th class="pb-2">Cliente</th>
                                 <th class="pb-2">WhatsApp</th>
-                                <th class="pb-2">Pedidos</th>
+                                <th class="pb-2">Pedidos Totales</th>
                                 <th class="pb-2">Total Gastado</th>
                                 <th class="pb-2">Acción</th>
                             </tr>
@@ -223,9 +237,7 @@
                                     <td class="py-3 font-bold text-yellow-400" x-text="cl.pedidos"></td>
                                     <td class="py-3 font-bold text-emerald-400" x-text="'$' + cl.total.toFixed(2)"></td>
                                     <td class="py-3">
-                                        <a :href="'https://wa.me/52' + cl.telefono + '?text=' + encodeURIComponent('¡Hola ' + cl.nombre + '! En KURO te regalamos el cupón *' + config.cupon_codigo + '* para un ' + config.cupon_descuento_pct + '% de descuento en tu próxima pre-orden 🍣🔥')" target="_blank" class="bg-zinc-800 hover:bg-yellow-500 hover:text-black px-3 py-1 rounded font-bold transition">
-                                            Enviar Cupón por WA
-                                        </a>
+                                        <a :href="'https://wa.me/52' + cl.telefono + '?text=' + encodeURIComponent('¡Hola ' + cl.nombre + '! En KURO te regalamos el cupón *' + config.cupon_codigo + '* para un ' + config.cupon_descuento_pct + '% de descuento en tu próxima pre-orden 🍣🔥')" target="_blank" class="bg-zinc-800 hover:bg-yellow-500 hover:text-black px-3 py-1 rounded font-bold transition">Enviar Cupón por WA</a>
                                     </td>
                                 </tr>
                             </template>
@@ -235,35 +247,35 @@
             </div>
         </section>
 
-        <!-- MÓDULO 4: NÚMEROS, FOOD COST Y UTILIDAD REAL (BASADO EN EXCEL) -->
+        <!-- MÓDULO 4: NÚMEROS DEL TURNO -->
         <section x-show="view === 'numeros'" x-cloak class="space-y-6">
             <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div class="bg-zinc-900 border border-zinc-800 p-5 rounded-2xl">
-                    <span class="text-xs text-zinc-400">Ventas Brutas Acumuladas</span>
+                    <span class="text-xs text-zinc-400">Ventas del Turno Actual</span>
                     <p class="text-3xl font-extrabold text-white mt-1" x-text="'$' + totalSales().toFixed(2)"></p>
                 </div>
                 <div class="bg-zinc-900 border border-zinc-800 p-5 rounded-2xl">
-                    <span class="text-xs text-zinc-400">Food Cost Promedio (Excel)</span>
+                    <span class="text-xs text-zinc-400">Food Cost (Turno Actual)</span>
                     <p class="text-3xl font-extrabold text-yellow-400 mt-1" x-text="foodCostPct().toFixed(1) + '%'"></p>
                 </div>
                 <div class="bg-zinc-900 border border-zinc-800 p-5 rounded-2xl">
-                    <span class="text-xs text-zinc-400">Gastos Fijos (Luz, Gas y Agua)</span>
+                    <span class="text-xs text-zinc-400">Gastos Fijos Asignados</span>
                     <p class="text-3xl font-extrabold text-red-400 mt-1">$250.00 <span class="text-xs font-normal">/mes</span></p>
                 </div>
                 <div class="bg-zinc-900 border border-emerald-500/40 p-5 rounded-2xl">
-                    <span class="text-xs text-emerald-400 font-bold">Utilidad Real Libre (Descontando Fijos)</span>
+                    <span class="text-xs text-emerald-400 font-bold">Utilidad Libre del Turno</span>
                     <p class="text-3xl font-extrabold text-emerald-400 mt-1" x-text="'$' + netProfitAfterFixed().toFixed(2)"></p>
                 </div>
             </div>
 
-            <!-- Buzón de Quejas Privadas (1-3 estrellas) -->
+            <!-- Buzón de Quejas Privadas -->
             <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
                 <h3 class="font-extrabold text-sm text-red-400 mb-3">Buzón Privado de Atención (Calificaciones 1 a 3 estrellas)</h3>
-                <template x-if="orders.filter(o => o.calificacion > 0 && o.calificacion <= 3).length === 0">
-                    <p class="text-xs text-zinc-500">Sin reportes negativos registrados.</p>
+                <template x-if="pedidosTurno().filter(o => o.calificacion > 0 && o.calificacion <= 3).length === 0">
+                    <p class="text-xs text-zinc-500">Sin reportes negativos registrados en este turno.</p>
                 </template>
                 <div class="space-y-2">
-                    <template x-for="bad in orders.filter(o => o.calificacion > 0 && o.calificacion <= 3)" :key="bad.folio">
+                    <template x-for="bad in pedidosTurno().filter(o => o.calificacion > 0 && o.calificacion <= 3)" :key="bad.folio">
                         <div class="bg-black border border-red-500/40 p-3 rounded-xl text-xs flex justify-between items-center">
                             <div>
                                 <strong class="text-white" x-text="bad.folio + ' - ' + bad.cliente_nombre + ' (' + bad.calificacion + '★)'"></strong>
@@ -275,8 +287,8 @@
                 </div>
             </div>
         </section>
-
-        <!-- MÓDULO 5: ASESOR CON IA Y CONFIGURACIÓN DE PRE-ORDEN -->
+        
+        <!-- MÓDULO 5: ASESOR IA + PRE-ORDEN -->
         <section x-show="view === 'asesor'" x-cloak class="grid md:grid-cols-2 gap-6">
             <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 space-y-4">
                 <h2 class="text-xl font-extrabold text-yellow-400">✨ Tu Asesor de Negocios KURO con IA</h2>
@@ -312,19 +324,16 @@
     </main>
 
     <script>
-        // CONEXIÓN EN TIEMPO REAL A TU PROYECTO DE SUPABASE
         const SUPABASE_URL = 'https://lsmuqgwtiooetxfieqod.supabase.co'; 
         const SUPABASE_ANON_KEY = 'sb_publishable_CaJMGbjeOwoXJladyQ39tA_HsmS1meK';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-        // DATOS PRIVADOS DE PAGO (SOLO SE ENVÍAN POR WHATSAPP AL CONFIRMAR PEDIDO)
         const CLABE_STORI_PRIVADA = '646180402320828145';
         const BANCO_DESTINO = 'Stori';
 
         function kuroAdminApp() {
             return {
                 view: 'cocina',
-                orders: [],
+                orders: [], // Aquí vivirán TODOS los pedidos, históricos y actuales
                 fondoCaja: 500,
                 efectivoContado: 500,
                 fechasTexto: '',
@@ -345,15 +354,12 @@
 
                 async initAdmin() {
                     await this.loadDataFromCloud();
-
-                    // Escuchar nuevos pedidos y calificaciones en tiempo real desde Supabase
                     supabaseClient.channel('kuro-admin-channel')
                         .on('postgres_changes', { event: '*', schema: 'public', table: 'kuro_pedidos' }, () => {
                             this.playBeep();
                             this.loadDataFromCloud();
-                        })
-                        .subscribe();
-
+                        }).subscribe();
+                        
                     window.addEventListener('storage', () => this.loadDataFromCloud());
                 },
 
@@ -387,9 +393,7 @@
                 },
 
                 async saveOrderState(ord) {
-                    await supabaseClient.from('kuro_pedidos')
-                        .update({ estado: ord.estado, pagado: ord.pagado })
-                        .eq('folio', ord.folio);
+                    await supabaseClient.from('kuro_pedidos').update({ estado: ord.estado, pagado: ord.pagado }).eq('folio', ord.folio);
                     localStorage.setItem('kuro_pedidos', JSON.stringify(this.orders));
                 },
 
@@ -404,14 +408,19 @@
                     await this.saveConfig();
                 },
 
+                // FITRO PRINCIPAL: Pedidos de este turno (que no han sido archivados por el corte)
+                pedidosTurno() {
+                    return this.orders.filter(o => !o.archivado);
+                },
+
                 ordersByStatus(st) {
-                    return this.orders.filter(o => o.estado === st);
+                    return this.pedidosTurno().filter(o => o.estado === st);
                 },
 
                 async acceptAndNotifyWhatsApp(ord) {
                     ord.estado = 'preparando';
                     await this.saveOrderState(ord);
-
+                    
                     let pagoInfo = `Método de pago elegido: *${ord.metodo_pago.toUpperCase()}*`;
                     if (ord.metodo_pago === 'transferencia') {
                         pagoInfo = `🔒 *DATOS PRIVADOS PARA TRANSFERENCIA:*\n• Banco: *${BANCO_DESTINO}*\n• CLABE: *${CLABE_STORI_PRIVADA}*\n• Beneficiario: *KURO Rolls*\n*(Envíanos tu comprobante por este chat)*`;
@@ -436,49 +445,119 @@
                     await this.saveOrderState(ord);
                 },
 
+                async cancelOrder(ord) {
+                    const confirmacion = confirm(`¿Estás seguro de cancelar el pedido ${ord.folio}?`);
+                    if (confirmacion) {
+                        ord.estado = 'cancelado';
+                        await this.saveOrderState(ord);
+                    }
+                },
+
                 sumByPayment(metodo) {
-                    return this.orders.filter(o => o.pagado && o.metodo_pago === metodo).reduce((s, o) => s + Number(o.total), 0);
+                    return this.pedidosTurno().filter(o => o.pagado && o.metodo_pago === metodo).reduce((s, o) => s + Number(o.total), 0);
                 },
 
                 diferenciaCaja() {
                     return this.efectivoContado - (this.fondoCaja + this.sumByPayment('efectivo'));
                 },
 
+                // EL CRM LEE TODOS LOS PEDIDOS HISTÓRICOS (Ignora el corte de caja)
                 crmClients() {
                     const map = {};
                     this.orders.forEach(o => {
-                        if (!map[o.cliente_telefono]) {
-                            map[o.cliente_telefono] = { nombre: o.cliente_nombre, telefono: o.cliente_telefono, pedidos: 0, total: 0 };
+                        if (o.estado !== 'cancelado') { 
+                            if (!map[o.cliente_telefono]) {
+                                map[o.cliente_telefono] = { nombre: o.cliente_nombre, telefono: o.cliente_telefono, pedidos: 0, total: 0 };
+                            }
+                            map[o.cliente_telefono].pedidos++;
+                            map[o.cliente_telefono].total += Number(o.total);
                         }
-                        map[o.cliente_telefono].pedidos++;
-                        map[o.cliente_telefono].total += Number(o.total);
                     });
                     return Object.values(map);
                 },
 
+                // LOS NÚMEROS SOLO REFLEJAN EL TURNO ACTUAL
                 totalSales() {
-                    return this.orders.reduce((s, o) => s + Number(o.total), 0);
+                    return this.pedidosTurno().filter(o => o.estado !== 'cancelado').reduce((s, o) => s + Number(o.total), 0);
                 },
-
                 totalProductionCost() {
-                    return this.orders.reduce((s, o) => s + Number(o.costo_produccion), 0);
+                    return this.pedidosTurno().filter(o => o.estado !== 'cancelado').reduce((s, o) => s + Number(o.costo_produccion), 0);
                 },
-
                 foodCostPct() {
                     if (this.totalSales() === 0) return 0;
                     return (this.totalProductionCost() / this.totalSales()) * 100;
                 },
-
                 netProfitAfterFixed() {
-                    const grossProfit = this.totalSales() - this.totalProductionCost();
-                    return grossProfit - 250.00;
+                    return (this.totalSales() - this.totalProductionCost()) - 250.00;
                 },
-
+                
                 aiSummaryText() {
-                    const count = this.orders.length;
+                    const count = this.pedidosTurno().filter(o => o.estado !== 'cancelado').length;
                     const sales = this.totalSales().toFixed(2);
                     const util = this.netProfitAfterFixed().toFixed(2);
-                    return `Llevas ${count} pedidos sincronizados en Supabase con ventas por $${sales} MXN. Descontando el costo exacto de tus insumos de sushi y los $250.00 de gastos fijos mensuales (luz, gas y agua), tu utilidad neta libre actual es de $${util} MXN.`;
+                    return `Llevas ${count} pedidos válidos sincronizados en este turno con ventas por $${sales} MXN. Descontando el costo exacto de tus insumos y los $250.00 de gastos fijos mensuales, tu utilidad neta libre actual es de $${util} MXN.`;
+                },
+
+                // FUNCIÓN ESTRELLA: CORTE DE CAJA Y EXCEL
+                async realizarCorte() {
+                    const pendientes = this.pedidosTurno().filter(o => ['nuevo', 'preparando', 'listo'].includes(o.estado));
+                    if (pendientes.length > 0) {
+                        alert("⚠️ Aún tienes pedidos en cocina sin entregar o cobrar. Termínalos antes de hacer el corte.");
+                        return;
+                    }
+
+                    const pedidosCobradosOCancelados = this.pedidosTurno().filter(o => o.estado === 'entregado' || o.estado === 'cancelado');
+                    
+                    if (pedidosCobradosOCancelados.length === 0) {
+                        alert("No hay ventas en este turno para hacer corte.");
+                        return;
+                    }
+
+                    const confirmacion = confirm(`Vas a hacer el corte de caja de ${pedidosCobradosOCancelados.length} pedidos. Se descargará tu Excel y el turno empezará desde cero. ¿Confirmar?`);
+                    if(!confirmacion) return;
+
+                    // 1. CREAR EL EXCEL
+                    const datosParaExcel = pedidosCobradosOCancelados.map(p => ({
+                        Folio: p.folio,
+                        Fecha: new Date(p.created_at).toLocaleString(),
+                        Cliente: p.cliente_nombre,
+                        Estado: p.estado.toUpperCase(),
+                        Metodo_Pago: p.pagado ? p.metodo_pago.toUpperCase() : 'NO PAGADO',
+                        Venta_Bruta: Number(p.total),
+                        Food_Cost: Number(p.costo_produccion),
+                        Utilidad_Neta: Number(p.utilidad_neta),
+                    }));
+
+                    datosParaExcel.push({});
+                    datosParaExcel.push({ Folio: 'RESUMEN DEL TURNO', Fecha: '', Cliente: '', Estado: '', Metodo_Pago: '' });
+                    datosParaExcel.push({ Folio: 'Efectivo:', Venta_Bruta: this.sumByPayment('efectivo') });
+                    datosParaExcel.push({ Folio: 'Transferencias:', Venta_Bruta: this.sumByPayment('transferencia') });
+                    datosParaExcel.push({ Folio: 'Total Turno:', Venta_Bruta: this.totalSales(), Utilidad_Neta: this.totalSales() - this.totalProductionCost() });
+
+                    const hojaExcel = XLSX.utils.json_to_sheet(datosParaExcel);
+                    const libroExcel = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(libroExcel, hojaExcel, "Corte de Caja");
+                    
+                    const fechaStr = new Date().toISOString().split('T')[0];
+                    XLSX.writeFile(libroExcel, `Corte_Caja_KURO_${fechaStr}.xlsx`);
+
+                    // 2. ARCHIVAR EN SUPABASE PARA INICIAR DE CERO
+                    const foliosAArchivar = pedidosCobradosOCancelados.map(p => p.folio);
+                    
+                    const { error } = await supabaseClient
+                        .from('kuro_pedidos')
+                        .update({ archivado: true })
+                        .in('folio', foliosAArchivar);
+
+                    if (error) {
+                        alert("Hubo un error guardando el corte en la nube.");
+                        console.error(error);
+                    } else {
+                        alert("✅ Corte exitoso. Excel descargado. El turno inicia desde cero.");
+                        this.fondoCaja = 500;
+                        this.efectivoContado = 500;
+                        await this.loadDataFromCloud(); 
+                    }
                 }
             }
         }
