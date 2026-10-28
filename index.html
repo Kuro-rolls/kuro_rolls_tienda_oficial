@@ -50,14 +50,12 @@
             box-shadow: 0 12px 28px rgba(0, 0, 0, 0.7), 0 0 18px rgba(234, 179, 8, 0.14);
         }
 
-        /* Tarjeta activa cuando cantidad > 0 */
         .kuro-card-active {
             background-color: rgba(30, 24, 10, 0.85) !important;
             border-color: #eab308 !important;
             box-shadow: 0 0 20px rgba(234, 179, 8, 0.18);
         }
 
-        /* Zoom suave en las imágenes al pasar el mouse */
         .kuro-img-box {
             overflow: hidden;
             flex-shrink: 0;
@@ -76,7 +74,6 @@
             transform: scale(1.12) rotate(1deg);
         }
 
-        /* Destello láser (Shimmer) en botones de orden */
         .btn-shimmer {
             position: relative;
             overflow: hidden;
@@ -100,7 +97,6 @@
             left: 140%;
         }
 
-        /* Animación de rebote en números al presionar + o - */
         @keyframes qtyPop {
             0% { transform: scale(1); }
             50% { transform: scale(1.45); color: #eab308; }
@@ -111,7 +107,6 @@
             animation: qtyPop 0.24s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
-        /* Marco del video del rollo flameándose */
         .flame-video-frame {
             position: relative;
             border-radius: 1.25rem;
@@ -143,13 +138,12 @@
 </head>
 <body x-data="kuroClientApp()" x-init="initApp()" class="min-h-screen flex flex-col justify-between selection:bg-yellow-500 selection:text-black">
 
-    <!-- NOTIFICACIÓN FLOTANTE AL AGREGAR PRODUCTOS -->
     <div x-show="toastMessage" x-transition.opacity x-cloak class="fixed bottom-24 right-4 z-50 bg-zinc-900 border border-yellow-500 text-white px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2 text-xs font-bold">
         <span class="text-yellow-400">✨</span>
         <span x-text="toastMessage"></span>
     </div>
 
-    <!-- HEADER CON LOGO OFICIAL -->
+    <!-- HEADER -->
     <header class="sticky top-0 z-50 bg-black/95 backdrop-blur-md border-b border-zinc-800 px-4 py-3">
         <div class="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
             <div class="flex items-center gap-3 cursor-pointer" @click="tab = 'inicio'">
@@ -179,12 +173,10 @@
     <!-- CONTENIDO PRINCIPAL -->
     <main class="max-w-5xl w-full mx-auto px-4 py-8 flex-1">
 
-        <!-- 1. INICIO (CON ESPACIO PARA VIDEO DEL ROLLO FLAMEÁNDOSE) -->
+        <!-- 1. INICIO -->
         <section x-show="tab === 'inicio'" x-transition x-cloak class="space-y-10 text-center">
             <div class="bg-gradient-to-b from-zinc-900/90 to-black border border-zinc-800 rounded-2xl p-6 md:p-12 shadow-2xl">
                 <div class="grid lg:grid-cols-2 gap-8 items-center text-center lg:text-left">
-                    
-                    <!-- Columna Izquierda: Identidad y Botones -->
                     <div>
                         <img src="20261022_013035.jpg" alt="KURO" class="w-36 h-36 mx-auto lg:mx-0 object-contain mb-5" onerror="this.style.display='none'">
                         <h2 class="font-serif-kuro text-2xl md:text-4xl gold-text tracking-wide leading-relaxed">
@@ -202,19 +194,11 @@
                             </button>
                         </div>
                     </div>
-
-                    <!-- Columna Derecha: ESPACIO PARA EL VIDEO DEL ROLLO FLAMEÁNDOSE -->
                     <div class="flame-video-frame">
                         <div class="relative rounded-2xl overflow-hidden bg-black aspect-video">
-                            <!-- 
-                                INSTRUCCIÓN PARA TU VIDEO:
-                                Guarda tu video en tu carpeta del proyecto con el nombre "rollo-flameado.mp4"
-                                (o cambia el src="rollo-flameado.mp4" por el nombre de tu archivo de video).
-                            -->
                             <video class="w-full h-full object-cover" autoplay loop muted playsinline poster="https://images.unsplash.com/photo-1579871494447-9811cf80d66c?auto=format&fit=crop&q=80&w=900">
                                 <source src="rollo-flameado.mp4" type="video/mp4">
                                 <source src="./img/rollo-flameado.mp4" type="video/mp4">
-                                <!-- Video de respaldo visual mientras subes tu archivo rollo-flameado.mp4 -->
                                 <source src="https://assets.mixkit.co/videos/preview/mixkit-chef-flambeing-a-dish-in-a-pan-42465-large.mp4" type="video/mp4">
                             </video>
                             <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent pointer-events-none"></div>
@@ -224,7 +208,6 @@
                             </div>
                         </div>
                     </div>
-
                 </div>
             </div>
 
@@ -240,7 +223,7 @@
             </div>
         </section>
 
-        <!-- 2. TU ESTILO, TU ROLLO (CONSTRUCTOR DINÁMICO CON IMAGEN Y BOTONES - 0 +) -->
+        <!-- 2. TU ESTILO, TU ROLLO -->
         <section x-show="tab === 'tu-estilo'" x-transition x-cloak class="space-y-8">
             <div class="text-center border-b border-zinc-800 pb-6">
                 <img src="./logos/log_dor.png" alt="Kuro Tu Estilo Tu Rollo" class="h-20 mx-auto object-contain mb-2" onerror="this.style.display='none'">
@@ -252,36 +235,19 @@
                     <h3 class="font-serif-kuro text-lg gold-text border-b border-zinc-800 pb-2 mb-4" x-text="group.category"></h3>
                     <div class="grid sm:grid-cols-2 gap-3.5">
                         <template x-for="ing in group.items" :key="ing.id">
-                            <!-- Tarjeta estilo Empanizado Crujiente: Imagen a la izquierda + Info + Controles (- 0 +) -->
                             <div class="kuro-card flex items-center justify-between gap-3.5 bg-[#0c0c0c] border border-zinc-800/90 p-3 rounded-xl hover:border-yellow-500/50"
                                  :class="ing.qty > 0 ? 'kuro-card-active' : ''">
-                                
-                                <!-- Recuadro de Imagen Miniatura (54x54px) -->
                                 <div class="kuro-img-box w-14 h-14 rounded-lg border border-zinc-800 bg-zinc-900">
                                     <img :src="ing.img" :alt="ing.name" onerror="this.src='https://images.unsplash.com/photo-1579871494447-9811cf80d66c?auto=format&fit=crop&q=80&w=150'">
                                 </div>
-
-                                <!-- Nombre y Precio -->
                                 <div class="flex-1 relative z-10">
                                     <p class="font-bold text-sm text-white leading-snug" x-text="ing.name"></p>
                                     <p class="text-xs gold-text font-extrabold mt-0.5" x-text="'+$' + ing.price"></p>
                                 </div>
-
-                                <!-- Controles Interactivos (- 0 +) -->
                                 <div class="flex items-center gap-2.5 relative z-10">
-                                    <button type="button"
-                                            @click="decrementIngredient(ing, $event)"
-                                            class="w-8 h-8 rounded-lg bg-[#222222] text-white font-extrabold hover:bg-zinc-700 active:scale-90 transition flex items-center justify-center">
-                                        -
-                                    </button>
-                                    <span class="w-5 text-center font-extrabold text-sm text-white select-none"
-                                          :id="'qty-' + ing.id"
-                                          x-text="ing.qty">0</span>
-                                    <button type="button"
-                                            @click="incrementIngredient(ing, $event)"
-                                            class="w-8 h-8 rounded-lg gold-bg font-extrabold hover:brightness-110 hover:shadow-[0_0_12px_rgba(234,179,8,0.5)] active:scale-90 transition flex items-center justify-center">
-                                        +
-                                    </button>
+                                    <button type="button" @click="decrementIngredient(ing, $event)" class="w-8 h-8 rounded-lg bg-[#222222] text-white font-extrabold hover:bg-zinc-700 active:scale-90 transition flex items-center justify-center">-</button>
+                                    <span class="w-5 text-center font-extrabold text-sm text-white select-none" :id="'qty-' + ing.id" x-text="ing.qty">0</span>
+                                    <button type="button" @click="incrementIngredient(ing, $event)" class="w-8 h-8 rounded-lg gold-bg font-extrabold hover:brightness-110 hover:shadow-[0_0_12px_rgba(234,179,8,0.5)] active:scale-90 transition flex items-center justify-center">+</button>
                                 </div>
                             </div>
                         </template>
@@ -289,7 +255,6 @@
                 </div>
             </template>
 
-            <!-- Barra flotante de creación -->
             <div class="sticky bottom-4 z-30 bg-zinc-950/95 backdrop-blur-md border border-yellow-500/50 p-4 rounded-2xl shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div>
                     <span class="text-xs uppercase tracking-wider text-zinc-400">Total de tu creación:</span>
@@ -301,81 +266,52 @@
             </div>
         </section>
 
-        <!-- 3. CATÁLOGO DE ESPECIALIDADES Y ADEREZOS (TODOS CON SU RECUADRO DE IMAGEN) -->
+        <!-- 3. CATÁLOGO DE ESPECIALIDADES -->
         <section x-show="tab === 'catalogo'" x-transition x-cloak class="space-y-10">
             <div class="text-center">
                 <h2 class="font-serif-kuro text-3xl gold-text">Nuestras Especialidades</h2>
                 <p class="text-zinc-400 text-sm mt-1">Obras maestras de la casa (Incluyen 1 oz de Soya Clásica).</p>
             </div>
 
-            <!-- Grid de Especialidades estilo Volcano Roll -->
             <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 <template x-for="spec in specialties" :key="spec.name">
                     <article class="kuro-card bg-[#0c0c0c] border border-yellow-500/40 rounded-2xl p-5 flex flex-col justify-between shadow-xl hover:border-yellow-400">
-                        
-                        <!-- Parte Superior: Texto a la izquierda + Imagen 100x100px a la derecha -->
                         <div class="flex justify-between items-start gap-4 mb-5 relative z-10">
                             <div class="flex-1">
                                 <div class="flex justify-between items-baseline gap-2 mb-2">
                                     <h3 class="font-serif-kuro text-xl text-white font-bold leading-tight" x-text="spec.name"></h3>
                                     <span class="text-xl font-extrabold gold-text shrink-0" x-text="'$' + spec.price"></span>
                                 </div>
-                                <p class="text-xs text-zinc-400 mb-1.5 leading-relaxed">
-                                    <strong class="text-white">PF (Por fuera):</strong> <span x-text="spec.pf"></span>
-                                </p>
-                                <p class="text-xs text-zinc-400 leading-relaxed">
-                                    <strong class="text-white">PD (Por dentro):</strong> <span x-text="spec.pd"></span>
-                                </p>
+                                <p class="text-xs text-zinc-400 mb-1.5 leading-relaxed"><strong class="text-white">PF (Por fuera):</strong> <span x-text="spec.pf"></span></p>
+                                <p class="text-xs text-zinc-400 leading-relaxed"><strong class="text-white">PD (Por dentro):</strong> <span x-text="spec.pd"></span></p>
                             </div>
-
-                            <!-- Recuadro de Imagen de Especialidad (100x100px) -->
                             <div class="kuro-img-box w-24 h-24 rounded-xl border border-zinc-800 bg-zinc-900 shadow-md">
                                 <img :src="spec.img" :alt="spec.name" onerror="this.src='https://images.unsplash.com/photo-1579871494447-9811cf80d66c?auto=format&fit=crop&q=80&w=300'">
                             </div>
                         </div>
-
-                        <!-- Botón inferior de ancho completo -->
-                        <button @click="addToCart(spec.name, spec.price, spec.cost, 'Especialidad')"
-                                class="btn-shimmer w-full bg-[#222222] hover:bg-yellow-500 hover:text-black text-white font-bold py-3 rounded-xl text-sm transition">
+                        <button @click="addToCart(spec.name, spec.price, spec.cost, 'Especialidad')" class="btn-shimmer w-full bg-[#222222] hover:bg-yellow-500 hover:text-black text-white font-bold py-3 rounded-xl text-sm transition">
                             + Agregar a mi orden
                         </button>
                     </article>
                 </template>
             </div>
 
-            <!-- Acompañamientos y Aderezos Extra (También con Imagen Miniatura y botones - 0 +) -->
             <div class="pt-6 border-t border-zinc-800">
                 <h3 class="font-serif-kuro text-2xl gold-text text-center mb-6">Acompañamientos y Aderezos Extra</h3>
                 <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     <template x-for="side in sides" :key="side.name">
-                        <div class="kuro-card bg-[#0c0c0c] border border-zinc-800 p-3.5 rounded-xl flex items-center justify-between gap-3.5 hover:border-yellow-500/50"
-                             :class="getSideQty(side.name) > 0 ? 'kuro-card-active' : ''">
-                            
-                            <!-- Recuadro de Imagen Miniatura (54x54px) -->
+                        <div class="kuro-card bg-[#0c0c0c] border border-zinc-800 p-3.5 rounded-xl flex items-center justify-between gap-3.5 hover:border-yellow-500/50" :class="getSideQty(side.name) > 0 ? 'kuro-card-active' : ''">
                             <div class="kuro-img-box w-14 h-14 rounded-lg border border-zinc-800 bg-zinc-900">
                                 <img :src="side.img" :alt="side.name" onerror="this.src='https://images.unsplash.com/photo-1472476443507-c7a5948772fc?auto=format&fit=crop&q=80&w=150'">
                             </div>
-
-                            <!-- Nombre y Precio -->
                             <div class="flex-1 relative z-10">
                                 <p class="font-bold text-sm text-white leading-snug" x-text="side.name"></p>
                                 <p class="text-xs gold-text font-extrabold mt-0.5" x-text="'+$' + side.price"></p>
                             </div>
-
-                            <!-- Controles - 0 + sincronizados con el carrito -->
                             <div class="flex items-center gap-2.5 relative z-10">
-                                <button type="button"
-                                        @click="decrementSideInCart(side, $event)"
-                                        class="w-8 h-8 rounded-lg bg-[#222222] text-white font-extrabold hover:bg-zinc-700 active:scale-90 transition flex items-center justify-center">
-                                    -
-                                </button>
-                                <span class="w-5 text-center font-extrabold text-sm text-white select-none"
-                                      x-text="getSideQty(side.name)">0</span>
-                                <button type="button"
-                                        @click="incrementSideInCart(side, $event)"
-                                        class="w-8 h-8 rounded-lg gold-bg font-extrabold hover:brightness-110 hover:shadow-[0_0_12px_rgba(234,179,8,0.5)] active:scale-90 transition flex items-center justify-center">
-                                    +
-                                </button>
+                                <button type="button" @click="decrementSideInCart(side, $event)" class="w-8 h-8 rounded-lg bg-[#222222] text-white font-extrabold hover:bg-zinc-700 active:scale-90 transition flex items-center justify-center">-</button>
+                                <span class="w-5 text-center font-extrabold text-sm text-white select-none" x-text="getSideQty(side.name)">0</span>
+                                <button type="button" @click="incrementSideInCart(side, $event)" class="w-8 h-8 rounded-lg gold-bg font-extrabold hover:brightness-110 hover:shadow-[0_0_12px_rgba(234,179,8,0.5)] active:scale-90 transition flex items-center justify-center">+</button>
                             </div>
                         </div>
                     </template>
@@ -383,11 +319,10 @@
             </div>
         </section>
 
-        <!-- 4. CHECKOUT / PRE-ORDEN -->
+        <!-- 4. CHECKOUT / PRE-ORDEN (BLOQUEADO SI NO ES VIP) -->
         <section x-show="tab === 'seleccion'" x-transition x-cloak class="max-w-2xl mx-auto space-y-6">
             <h2 class="font-serif-kuro text-3xl gold-text text-center">Tu Pre-Orden KURO</h2>
 
-            <!-- Lista del Carrito -->
             <div class="bg-zinc-900/70 border border-zinc-800 rounded-xl p-5 space-y-4">
                 <template x-if="cart.length === 0">
                     <p class="text-center text-zinc-500 py-6">Tu carrito está vacío. ¡Arma tu rollo o elige una especialidad!</p>
@@ -408,19 +343,15 @@
                     </div>
                 </template>
 
-                <!-- Cupón Dinámico (ej. KURO 10) -->
                 <div x-show="cart.length > 0" class="pt-2">
                     <label class="text-xs text-zinc-400 block mb-1">¿Tienes un código promocional de redes?</label>
                     <div class="flex gap-2">
                         <input type="text" x-model="couponInput" placeholder="Escribe tu codigo promocional" class="flex-1 bg-black border border-zinc-700 rounded-lg px-3 py-2 text-sm uppercase">
-                        <button type="button" @click="applyCoupon()" class="bg-zinc-800 hover:bg-zinc-700 text-yellow-400 font-bold px-4 py-2 rounded-lg text-xs">
-                            Aplicar
-                        </button>
+                        <button type="button" @click="applyCoupon()" class="bg-zinc-800 hover:bg-zinc-700 text-yellow-400 font-bold px-4 py-2 rounded-lg text-xs">Aplicar</button>
                     </div>
                     <p x-show="couponMessage" class="text-xs mt-1" :class="discountAmount() > 0 ? 'text-emerald-400' : 'text-red-400'" x-text="couponMessage"></p>
                 </div>
 
-                <!-- Totales -->
                 <div x-show="cart.length > 0" class="border-t border-zinc-800 pt-4 space-y-1 text-sm">
                     <div class="flex justify-between text-zinc-400">
                         <span>Subtotal:</span>
@@ -437,7 +368,7 @@
                 </div>
             </div>
 
-            <!-- Formulario de Pre-Orden -->
+            <!-- Formulario de Pre-Orden con LÓGICA VIP -->
             <form x-show="cart.length > 0" @submit.prevent="submitOrder()" class="bg-zinc-900/70 border border-zinc-800 rounded-xl p-6 space-y-4">
                 <div>
                     <label class="text-xs text-zinc-400 uppercase font-semibold">Nombre Completo *</label>
@@ -447,7 +378,6 @@
                 <div>
                     <label class="text-xs text-zinc-400 uppercase font-semibold">Teléfono (WhatsApp a 10 dígitos) *</label>
                     <input type="tel" x-model="checkout.telefono" required pattern="[0-9]{10,13}" placeholder="4621234567" class="w-full mt-1 bg-black border border-zinc-700 rounded-lg px-3 py-2.5 text-sm focus:border-yellow-500 outline-none">
-                    <span class="text-[11px] text-zinc-500">Aquí recibirás tu confirmación y estatus del pedido.</span>
                 </div>
 
                 <div class="grid sm:grid-cols-2 gap-4">
@@ -469,12 +399,6 @@
                 </div>
 
                 <div>
-                    <label class="text-xs text-zinc-400 uppercase font-semibold">Punto de Recolección / Referencia</label>
-                    <input type="text" x-model="checkout.ubicacion" :placeholder="config.punto_recoleccion" class="w-full mt-1 bg-black border border-zinc-700 rounded-lg px-3 py-2.5 text-sm">
-                    <span class="text-[11px] text-yellow-500/80">La ubicación exacta de recolección se te enviará al confirmar tu pedido.</span>
-                </div>
-
-                <div>
                     <label class="text-xs text-zinc-400 uppercase font-semibold">Método de Pago *</label>
                     <select x-model="checkout.pago" class="w-full mt-1 bg-black border border-zinc-700 rounded-lg px-3 py-2.5 text-sm">
                         <option value="efectivo">Efectivo al recoger</option>
@@ -484,13 +408,27 @@
                     </select>
                 </div>
 
-                <button type="submit" :disabled="submitting" class="btn-shimmer w-full gold-bg font-extrabold py-3.5 rounded-xl shadow-lg hover:brightness-110 transition text-sm tracking-wide">
-                    <span x-text="submitting ? 'ENVIANDO A COCINA...' : 'ENVIAR PRE-ORDEN A COCINA'"></span>
-                </button>
+                <!-- BLOQUEO VIP CONDICIONAL -->
+                <template x-if="isVip">
+                    <button type="submit" :disabled="submitting" class="btn-shimmer w-full gold-bg font-extrabold py-3.5 rounded-xl shadow-lg hover:brightness-110 transition text-sm tracking-wide">
+                        <span x-text="submitting ? 'ENVIANDO A COCINA...' : 'ENVIAR PRE-ORDEN A COCINA'"></span>
+                    </button>
+                </template>
+                <template x-if="!isVip">
+                    <div class="bg-[#111] border border-zinc-700 rounded-xl p-5 text-center mt-4">
+                        <span class="text-2xl mb-2 block">🔒</span>
+                        <p class="text-sm font-bold text-white uppercase tracking-wider">Modo Catálogo Activo</p>
+                        <p class="text-xs text-zinc-400 mt-1">Has cotizado tu pedido con éxito. Para enviarlo a cocina, solicita tu acceso VIP.</p>
+                        <a href="https://wa.me/524622431013?text=Hola%20KURO,%20tengo%20lista%20mi%20orden.%20%C2%BFMe%20compartes%20el%20acceso%20VIP%20para%20pedir?" target="_blank" class="inline-block mt-4 bg-zinc-800 border border-zinc-600 hover:bg-yellow-500 hover:border-yellow-500 hover:text-black text-white font-bold px-5 py-2.5 rounded-lg text-xs transition">
+                            Solicitar Acceso VIP por WA
+                        </a>
+                    </div>
+                </template>
+
             </form>
         </section>
 
-        <!-- 5. TICKET DIGITAL EN VIVO Y FILTRO DE RESEÑAS -->
+        <!-- 5. TICKET DIGITAL EN VIVO -->
         <section x-show="tab === 'ticket' && activeTicket" x-transition x-cloak class="max-w-md mx-auto">
             <div class="bg-zinc-900 border border-zinc-700 rounded-2xl p-6 shadow-2xl space-y-6">
                 <div class="text-center border-b border-zinc-800 pb-4">
@@ -498,27 +436,15 @@
                     <h2 class="text-3xl font-extrabold gold-text mt-1" x-text="activeTicket?.folio"></h2>
                     <p class="text-xs text-zinc-400 mt-1" x-text="activeTicket?.fecha_programada"></p>
                 </div>
-
-                <!-- Barra de Estado en Vivo -->
                 <div class="grid grid-cols-3 gap-2 text-center text-xs font-bold">
-                    <div class="p-2 rounded-lg border" :class="['nuevo','preparando','listo','entregado'].includes(activeTicket?.estado) ? 'border-yellow-500 bg-yellow-500/10 text-yellow-400' : 'border-zinc-800 text-zinc-600'">
-                        1. Recibido
-                    </div>
-                    <div class="p-2 rounded-lg border" :class="['preparando','listo','entregado'].includes(activeTicket?.estado) ? 'border-yellow-500 bg-yellow-500/10 text-yellow-400' : 'border-zinc-800 text-zinc-600'">
-                        2. En Cocina
-                    </div>
-                    <div class="p-2 rounded-lg border" :class="['listo','entregado'].includes(activeTicket?.estado) ? 'border-emerald-500 bg-emerald-500/10 text-emerald-400' : 'border-zinc-800 text-zinc-600'">
-                        3. ¡Listo!
-                    </div>
+                    <div class="p-2 rounded-lg border" :class="['nuevo','preparando','listo','entregado'].includes(activeTicket?.estado) ? 'border-yellow-500 bg-yellow-500/10 text-yellow-400' : 'border-zinc-800 text-zinc-600'">1. Recibido</div>
+                    <div class="p-2 rounded-lg border" :class="['preparando','listo','entregado'].includes(activeTicket?.estado) ? 'border-yellow-500 bg-yellow-500/10 text-yellow-400' : 'border-zinc-800 text-zinc-600'">2. En Cocina</div>
+                    <div class="p-2 rounded-lg border" :class="['listo','entregado'].includes(activeTicket?.estado) ? 'border-emerald-500 bg-emerald-500/10 text-emerald-400' : 'border-zinc-800 text-zinc-600'">3. ¡Listo!</div>
                 </div>
-
-                <!-- Aviso de Seguridad para Transferencia -->
                 <div x-show="activeTicket?.metodo_pago === 'transferencia'" class="bg-zinc-950 border border-yellow-500/40 p-3 rounded-xl text-xs text-zinc-300">
                     <strong class="gold-text block mb-1">🔒 Seguridad en Transferencia:</strong>
-                    Por tu seguridad, nuestros datos bancarios Stori no se muestran públicamente aquí. Te llegarán directamente en nuestro mensaje de confirmación por WhatsApp al aceptar tu orden.
+                    Por tu seguridad, nuestros datos bancarios Stori no se muestran públicamente aquí. Te llegarán directamente en nuestro mensaje de confirmación por WhatsApp.
                 </div>
-
-                <!-- Detalle de Productos -->
                 <div class="space-y-2 text-xs border-t border-b border-zinc-800 py-4">
                     <template x-for="it in activeTicket?.items" :key="it.name">
                         <div class="flex justify-between">
@@ -526,61 +452,48 @@
                             <span class="font-bold text-white" x-text="'$' + (it.price * it.qty).toFixed(2)"></span>
                         </div>
                     </template>
-                    <div x-show="activeTicket?.descuento > 0" class="flex justify-between text-emerald-400 pt-2">
-                        <span>Descuento Cupón:</span>
-                        <span x-text="'-$' + Number(activeTicket?.descuento).toFixed(2)"></span>
-                    </div>
                     <div class="flex justify-between text-base font-extrabold gold-text pt-2">
                         <span>TOTAL:</span>
                         <span x-text="'$' + Number(activeTicket?.total).toFixed(2)"></span>
                     </div>
                 </div>
-
-                <!-- Módulo de Calificación Inteligente (4-5 a Google, 1-3 Privado a ti) -->
-                <div class="text-center space-y-3 pt-2">
-                    <p class="text-sm font-bold text-white">¿Cómo fue tu experiencia hoy?</p>
-                    <div class="flex justify-center gap-2 text-2xl">
-                        <template x-for="star in [1,2,3,4,5]" :key="star">
-                            <button @click="rateOrder(star)" :class="(activeTicket?.calificacion || 0) >= star ? 'text-yellow-400 scale-110' : 'text-zinc-700'" class="transition transform hover:scale-125">★</button>
-                        </template>
-                    </div>
-
-                    <!-- 4 o 5 Estrellas -> Google Maps -->
-                    <div x-show="activeTicket?.calificacion >= 4" class="bg-emerald-950/40 border border-emerald-500/40 p-3 rounded-xl text-xs space-y-2">
-                        <p class="text-emerald-300 font-semibold">¡Gracias! Nos alegra que disfrutaras tu rollo.</p>
-                        <template x-if="config.google_maps_link">
-                            <a :href="config.google_maps_link" target="_blank" class="inline-block gold-bg font-bold px-4 py-2 rounded-lg">Déjanos tu reseña en Google ⭐</a>
-                        </template>
-                        <template x-if="!config.google_maps_link">
-                            <p class="text-zinc-400">Tu calificación positiva quedó registrada en KURO.</p>
-                        </template>
-                    </div>
-
-                    <!-- 1 a 3 Estrellas -> Buzón Privado Interno -->
-                    <div x-show="activeTicket?.calificacion > 0 && activeTicket?.calificacion <= 3" class="bg-red-950/30 border border-red-500/40 p-3 rounded-xl text-xs space-y-2 text-left">
-                        <p class="text-red-300 font-semibold">Queremos mejorar para ti. Este mensaje llegará en privado directo al dueño:</p>
-                        <textarea x-model="privateFeedback" rows="2" placeholder="¿Qué falló en tu pedido?" class="w-full bg-black border border-zinc-700 rounded p-2 text-white"></textarea>
-                        <button @click="sendPrivateFeedback()" class="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-1.5 rounded">Enviar reporte privado</button>
-                    </div>
-                </div>
             </div>
         </section>
 
-        <!-- 6. CONTACTO -->
+        <!-- 6. CONTACTO Y REDES SOCIALES -->
         <section x-show="tab === 'mas'" x-transition x-cloak class="max-w-xl mx-auto text-center space-y-6">
             <img src="./logos/log_dor.png" alt="KURO" class="w-32 h-32 mx-auto object-contain" onerror="this.style.display='none'">
             <h2 class="font-serif-kuro text-2xl gold-text">SOMOS TRADICIÓN, SAZÓN Y SABOR EN CADA PLATILLO</h2>
             <div class="grid gap-3">
-                <a href="https://wa.me/524622431013?text=Hola%20KURO,%20necesito%20soporte%20con%20mi%20pre-orden..." target="_blank" class="border border-yellow-500 text-yellow-400 font-bold py-3 rounded-xl hover:bg-yellow-500 hover:text-black transition">
-                    Soporte Directo por WhatsApp
-                </a>
-                <a href="https://wa.me/524622431013?text=Hola%20KURO,%20¡tengo%20una%20idea%20genial%20para%20un%20nuevo%20rollo!" target="_blank" class="bg-zinc-900 border border-zinc-700 text-white font-semibold py-3 rounded-xl hover:border-yellow-500 transition">
-                    Proponer Idea de Nuevo Rollo
-                </a>
-                <a href="https://wa.me/524622431013?text=Hola%20KURO,%20¡quiero%20hacer%20una%20cotización%20con%20ustedes!" target="_blank" class="bg-zinc-900 border border-zinc-700 text-white font-semibold py-3 rounded-xl hover:border-yellow-500 transition">
-                    ¿Tienes algún evento? Contáctanos.
-                </a>
+                <a href="https://wa.me/524622431013?text=Hola%20KURO,%20necesito%20soporte%20con%20mi%20pre-orden..." target="_blank" class="border border-yellow-500 text-yellow-400 font-bold py-3 rounded-xl hover:bg-yellow-500 hover:text-black transition">Soporte Directo por WhatsApp</a>
+                <a href="https://wa.me/524622431013?text=Hola%20KURO,%20¡tengo%20una%20idea%20genial%20para%20un%20nuevo%20rollo!" target="_blank" class="bg-zinc-900 border border-zinc-700 text-white font-semibold py-3 rounded-xl hover:border-yellow-500 transition">Proponer Idea de Nuevo Rollo</a>
+                <a href="https://wa.me/524622431013?text=Hola%20KURO,%20¡quiero%20hacer%20una%20cotización%20con%20ustedes!" target="_blank" class="bg-zinc-900 border border-zinc-700 text-white font-semibold py-3 rounded-xl hover:border-yellow-500 transition">¿Tienes algún evento? Contáctanos.</a>
             </div>
+
+            <!-- SECCIÓN NUEVA: REDES SOCIALES -->
+            <div class="mt-10 border-t border-zinc-800 pt-8">
+                <h3 class="font-serif-kuro text-xl gold-text mb-6">Síguenos en nuestras redes sociales</h3>
+                <div class="flex justify-center gap-5">
+                    
+                    <!-- Facebook -->
+                   <a href="#" target="_blank" class="w-14 h-14 bg-zinc-900 border border-zinc-700 text-zinc-400 hover:text-white hover:border-yellow-500 hover:shadow-[0_0_15px_rgba(234,179,8,0.2)] rounded-xl flex items-center justify-center transition duration-300 transform hover:scale-105">
+                         <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v3.385z"/></svg>
+                    </a>
+                    <!-- Instagram -->
+                    <a href="#" target="_blank" class="w-14 h-14 bg-zinc-900 border border-zinc-700 text-zinc-400 hover:text-white hover:border-yellow-500 hover:shadow-[0_0_15px_rgba(234,179,8,0.2)] rounded-xl flex items-center justify-center transition duration-300 transform hover:scale-105">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+                    </a>
+                    <!-- TikTok -->
+                    <a href="#" target="_blank" class="w-14 h-14 bg-zinc-900 border border-zinc-700 text-zinc-400 hover:text-white hover:border-yellow-500 hover:shadow-[0_0_15px_rgba(234,179,8,0.2)] rounded-xl flex items-center justify-center transition duration-300 transform hover:scale-105">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.01.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg>
+                    </a>
+                    <!-- YouTube -->
+                    <a href="#" target="_blank" class="w-14 h-14 bg-zinc-900 border border-zinc-700 text-zinc-400 hover:text-white hover:border-yellow-500 hover:shadow-[0_0_15px_rgba(234,179,8,0.2)] rounded-xl flex items-center justify-center transition duration-300 transform hover:scale-105">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/></svg>
+                    </a>
+                </div>
+            </div>
+
         </section>
 
     </main>
@@ -590,7 +503,6 @@
     </footer>
 
     <script>
-        // EFECTO GLOBAL DE LUZ DORADA QUE SIGUE AL MOUSE EN TODAS LAS TARJETAS (.kuro-card)
         document.addEventListener('mousemove', (e) => {
             const card = e.target.closest('.kuro-card');
             if (card) {
@@ -600,7 +512,6 @@
             }
         });
 
-        // CONEXIÓN EN TIEMPO REAL A TU PROYECTO DE SUPABASE
         const SUPABASE_URL = 'https://lsmuqgwtiooetxfieqod.supabase.co'; 
         const SUPABASE_ANON_KEY = 'sb_publishable_CaJMGbjeOwoXJladyQ39tA_HsmS1meK';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -616,6 +527,7 @@
                 activeTicket: null,
                 submitting: false,
                 toastMessage: '',
+                isVip: false, // NUEVO: Control VIP
 
                 config: {
                     fechas_entrega: [
@@ -632,16 +544,15 @@
                     whatsapp_negocio: '524622431013'
                 },
 
-                checkout: {
-                    nombre: '',
-                    telefono: '',
-                    modalidad: 'Recolección en Punto',
-                    fecha: 'Viernes (Pre-orden 2:00 PM - 9:00 PM)',
-                    ubicacion: '',
-                    pago: 'efectivo'
+                checkout: { 
+                    nombre: '', 
+                    telefono: '', 
+                    modalidad: 'Recolección en Punto', 
+                    fecha: 'Viernes', 
+                    ubicacion: '', 
+                    pago: 'efectivo' 
                 },
 
-                // CADA INGREDIENTE DE "TU ESTILO, TU ROLLO" TIENE SU PROPIEDAD img
                 customGroups: [
                     {
                         category: 'Preparación y Arroz (Base 200g + Alga Nori incluida)',
@@ -692,261 +603,227 @@
                     }
                 ],
 
-                // CADA ESPECIALIDAD TIENE SU PROPIEDAD img
                 specialties: [
-                    { name: 'Volcano Roll', price: 94, cost: 36.56, pf: 'Queso manchego picante', pd: 'Aguacate, arrachera y queso philadelphia', img: './img/volcanoroll.jpg' },
-                    { name: 'Steak Roll', price: 95, cost: 34.12, pf: 'Empanizado', pd: 'Doble porción de arrachera y queso manchego', img: './img/steakroll.jpg' },
-                    { name: 'California Roll', price: 88, cost: 27.90, pf: 'Ajonjolí bicolor', pd: 'Surimi, queso philadelphia, pepino y aguacate', img: './img/californiaroll.jpg' },
-                    { name: 'Jaiba Roll', price: 85, cost: 28.90, pf: 'Empanizado', pd: 'Surimi, philadelphia y aguacate', img: './img/jaiba roll.jpg' },
-                    { name: 'Uramaki Roll', price: 92, cost: 32.66, pf: 'Alga nori entera', pd: 'Queso philadelphia, aguacate, pepino y camarón', img: './img/urumakiroll.jpg' },
-                    { name: 'Classic Roll', price: 98, cost: 37.92, pf: 'Empanizado', pd: 'Queso manchego, arrachera, camarón y aguacate', img: './img/classicroll.jpg' }
+                    { 
+                        name: 'Volcano Roll', price: 94, cost: 36.56, 
+                        pf: 'Queso manchego picante', pd: 'Aguacate, arrachera y queso philadelphia', img: './img/volcanoroll.jpg' 
+                    },
+                    { 
+                        name: 'Steak Roll', price: 95, cost: 34.12, 
+                        pf: 'Empanizado', pd: 'Doble porción de arrachera y queso manchego', img: './img/steakroll.jpg' 
+                    },
+                    { 
+                        name: 'California Roll', price: 88, cost: 27.90, 
+                        pf: 'Ajonjolí bicolor', pd: 'Surimi, queso philadelphia, pepino y aguacate', img: './img/californiaroll.jpg' 
+                    },
+                    { 
+                        name: 'Jaiba Roll', price: 85, cost: 28.90, 
+                        pf: 'Empanizado', pd: 'Surimi, philadelphia y aguacate', img: './img/jaiba roll.jpg' 
+                    },
+                    { 
+                        name: 'Uramaki Roll', price: 92, cost: 32.66, 
+                        pf: 'Alga nori entera', pd: 'Queso philadelphia, aguacate, pepino y camarón', img: './img/urumakiroll.jpg' 
+                    },
+                    { 
+                        name: 'Classic Roll', price: 98, cost: 37.92, 
+                        pf: 'Empanizado', pd: 'Queso manchego, arrachera, camarón y aguacate', img: './img/classicroll.jpg' 
+                    }
                 ],
 
-                // CADA ADEREZO EXTRA TIENE SU PROPIEDAD img
                 sides: [
-                    { name: 'Chipotle Cream 1 oz', price: 6, cost: 2.40, img: 'https://images.unsplash.com/photo-1472476443507-c7a5948772fc?auto=format&fit=crop&q=80&w=150' },
-                    { name: 'Chipotle Cream 2 oz', price: 9, cost: 4.80, img: 'https://images.unsplash.com/photo-1472476443507-c7a5948772fc?auto=format&fit=crop&q=80&w=150' },
-                    { name: 'Sriracha Cream 1 oz', price: 6, cost: 2.20, img: 'https://images.unsplash.com/photo-1588166524941-3bf61a9c41db?auto=format&fit=crop&q=80&w=150' },
-                    { name: 'Sriracha Cream 2 oz', price: 9, cost: 4.40, img: 'https://images.unsplash.com/photo-1588166524941-3bf61a9c41db?auto=format&fit=crop&q=80&w=150' },
-                    { name: 'Soya Clásica Extra 1 oz', price: 5, cost: 3.00, img: 'https://images.unsplash.com/photo-1584270354949-c26b0d5b4a0c?auto=format&fit=crop&q=80&w=150' },
-                    { name: 'Soya Clásica Extra 2 oz', price: 7, cost: 5.00, img: 'https://images.unsplash.com/photo-1584270354949-c26b0d5b4a0c?auto=format&fit=crop&q=80&w=150' },
-                    { name: 'Soya Picante 1 oz', price: 6, cost: 4.00, img: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?auto=format&fit=crop&q=80&w=150' },
-                    { name: 'Soya Picante 2 oz', price: 8, cost: 6.00, img: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?auto=format&fit=crop&q=80&w=150' }
+                    { name: 'Chipotle Cream 1 oz', price: 6, cost: 2.40, img: './img/chipotlecream1oz.jpg' },
+                    { name: 'Chipotle Cream 2 oz', price: 9, cost: 4.80, img: './img/chipotlecream2oz.jpg' },
+                    { name: 'Sriracha Cream 1 oz', price: 6, cost: 2.20, img: './img/sriracha_cream1oz.jpg' },
+                    { name: 'Sriracha Cream 2 oz', price: 9, cost: 4.40, img: './img/sriracha_cream2oz.jpg' },
+                    { name: 'Soya Clásica Extra 1 oz', price: 5, cost: 3.00, img: './img/soyatradicional1oz.jpg' },
+                    { name: 'Soya Clásica Extra 2 oz', price: 7, cost: 5.00, img: './img/soyatradicional2oz.jpg' },
+                    { name: 'Soya Picante 1 oz', price: 6, cost: 4.00, img: './img/soyapicante1oz.jpg' },
+                    { name: 'Soya Picante 2 oz', price: 8, cost: 6.00, img: './img/soyapicante2oz.jpg' }
                 ],
 
                 async initApp() {
-                    // 1. Cargar configuración desde Supabase
+                    // Lógica para detectar si es cliente VIP o Catálogo Público
+                    const urlParams = new URLSearchParams(window.location.search);
+                    if (urlParams.get('kuro') === 'vip') {
+                        this.isVip = true;
+                    }
+
                     const { data: cfgData } = await supabaseClient.from('kuro_config').select('*').eq('id', 1).single();
                     if (cfgData) {
                         this.config = cfgData;
                         localStorage.setItem('kuro_config', JSON.stringify(cfgData));
-                    } else {
-                        const savedCfg = localStorage.getItem('kuro_config');
-                        if (savedCfg) this.config = JSON.parse(savedCfg);
                     }
                     this.checkout.fecha = this.config.fechas_entrega[0] || '';
 
-                    // 2. Escuchar actualizaciones en tiempo real desde Supabase
                     supabaseClient.channel('kuro-client-channel')
                         .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'kuro_pedidos' }, payload => {
                             if (this.activeTicket && payload.new.folio === this.activeTicket.folio) {
                                 this.activeTicket = payload.new;
                             }
-                        })
-                        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'kuro_config' }, payload => {
-                            this.config = payload.new;
-                            this.checkout.fecha = this.config.fechas_entrega[0] || '';
-                        })
-                        .subscribe();
-
-                    // Respaldo LocalStorage entre pestañas
-                    window.addEventListener('storage', () => {
-                        const cfg = localStorage.getItem('kuro_config');
-                        if (cfg) this.config = JSON.parse(cfg);
-                        if (this.activeTicket) {
-                            const orders = JSON.parse(localStorage.getItem('kuro_pedidos') || '[]');
-                            const updated = orders.find(o => o.folio === this.activeTicket.folio);
-                            if (updated) this.activeTicket = updated;
-                        }
-                    });
+                        }).subscribe();
                 },
 
-                // FUNCIONES INTERACTIVAS PARA LOS BOTONES (+) Y (-) EN INGREDIENTES
-                incrementIngredient(ing, event) {
-                    ing.qty++;
-                    this.triggerQtyBump(event);
+                incrementIngredient(ing, event) { 
+                    ing.qty++; 
+                    this.triggerQtyBump(event); 
                 },
 
-                decrementIngredient(ing, event) {
-                    if (ing.qty > 0) {
-                        ing.qty--;
-                        this.triggerQtyBump(event);
-                    }
+                decrementIngredient(ing, event) { 
+                    if (ing.qty > 0) { 
+                        ing.qty--; 
+                        this.triggerQtyBump(event); 
+                    } 
                 },
 
-                // FUNCIONES INTERACTIVAS PARA LOS BOTONES (+) Y (-) EN ADEREZOS DEL CATÁLOGO
-                getSideQty(name) {
-                    const found = this.cart.find(i => i.name === name && i.details === 'Aderezo');
-                    return found ? found.qty : 0;
+                getSideQty(name) { 
+                    const found = this.cart.find(i => i.name === name && i.details === 'Aderezo'); 
+                    return found ? found.qty : 0; 
                 },
 
-                incrementSideInCart(side, event) {
-                    this.addToCart(side.name, side.price, side.cost, 'Aderezo');
-                    this.triggerQtyBump(event);
+                incrementSideInCart(side, event) { 
+                    this.addToCart(side.name, side.price, side.cost, 'Aderezo'); 
+                    this.triggerQtyBump(event); 
                 },
 
                 decrementSideInCart(side, event) {
                     const idx = this.cart.findIndex(i => i.name === side.name && i.details === 'Aderezo');
-                    if (idx !== -1) {
-                        this.decrementCart(idx);
-                        this.triggerQtyBump(event);
+                    if (idx !== -1) { 
+                        this.decrementCart(idx); 
+                        this.triggerQtyBump(event); 
                     }
                 },
 
                 triggerQtyBump(event) {
                     if (!event || !event.currentTarget) return;
-                    const parent = event.currentTarget.parentElement;
-                    const span = parent ? parent.querySelector('span') : null;
-                    if (span) {
-                        span.classList.remove('qty-bump');
-                        void span.offsetWidth;
-                        span.classList.add('qty-bump');
+                    const span = event.currentTarget.parentElement?.querySelector('span');
+                    if (span) { 
+                        span.classList.remove('qty-bump'); 
+                        void span.offsetWidth; 
+                        span.classList.add('qty-bump'); 
                     }
                 },
 
-                showToast(msg) {
-                    this.toastMessage = msg;
-                    setTimeout(() => {
-                        if (this.toastMessage === msg) this.toastMessage = '';
-                    }, 2200);
+                showToast(msg) { 
+                    this.toastMessage = msg; 
+                    setTimeout(() => { 
+                        if (this.toastMessage === msg) this.toastMessage = ''; 
+                    }, 2200); 
                 },
 
-                customRollPrice() {
-                    let extras = 0;
-                    this.customGroups.forEach(g => g.items.forEach(i => extras += (i.price * i.qty)));
-                    return 65 + extras;
+                customRollPrice() { 
+                    let ex = 0; 
+                    this.customGroups.forEach(g => g.items.forEach(i => ex += (i.price * i.qty))); 
+                    return 65 + ex; 
                 },
 
-                customRollCost() {
-                    let extrasCost = 0;
-                    this.customGroups.forEach(g => g.items.forEach(i => extrasCost += (i.cost * i.qty)));
-                    return Number((15.00 + extrasCost).toFixed(2));
+                customRollCost() { 
+                    let exC = 0; 
+                    this.customGroups.forEach(g => g.items.forEach(i => exC += (i.cost * i.qty))); 
+                    return Number((15.00 + exC).toFixed(2)); 
                 },
 
                 addCustomRollToCart() {
-                    let selected = [];
-                    this.customGroups.forEach(g => g.items.forEach(i => {
-                        if (i.qty > 0) selected.push(`${i.qty}x ${i.name}`);
+                    let sel = []; 
+                    this.customGroups.forEach(g => g.items.forEach(i => { 
+                        if (i.qty > 0) sel.push(`${i.qty}x ${i.name}`); 
                     }));
-                    const details = selected.length > 0 ? selected.join(', ') : 'Solo base (Arroz 200g + Alga)';
-                    this.cart.push({
-                        name: 'Rollo Personalizado (Tu Estilo)',
-                        details: details,
-                        price: this.customRollPrice(),
-                        cost: this.customRollCost(),
-                        qty: 1
+                    
+                    const details = sel.length > 0 ? sel.join(', ') : 'Solo base (Arroz 200g + Alga)';
+                    
+                    this.cart.push({ 
+                        name: 'Rollo Personalizado (Tu Estilo)', 
+                        details, 
+                        price: this.customRollPrice(), 
+                        cost: this.customRollCost(), 
+                        qty: 1 
                     });
+                    
                     this.customGroups.forEach(g => g.items.forEach(i => i.qty = 0));
-                    this.showToast('¡Rollo personalizado agregado a tu orden!');
+                    this.showToast('¡Rollo personalizado agregado!');
                     this.tab = 'seleccion';
                 },
 
                 addToCart(name, price, cost, category) {
-                    const existing = this.cart.find(i => i.name === name && i.details === category);
-                    if (existing) {
-                        existing.qty++;
+                    const ex = this.cart.find(i => i.name === name && i.details === category);
+                    if (ex) {
+                        ex.qty++; 
                     } else {
                         this.cart.push({ name, details: category, price, cost, qty: 1 });
                     }
-                    this.showToast(`${name} agregado a tu orden`);
+                    this.showToast(`${name} agregado`);
                 },
 
-                decrementCart(idx) {
-                    if (this.cart[idx].qty > 1) this.cart[idx].qty--;
-                    else this.cart.splice(idx, 1);
+                decrementCart(idx) { 
+                    if (this.cart[idx].qty > 1) {
+                        this.cart[idx].qty--; 
+                    } else {
+                        this.cart.splice(idx, 1); 
+                    }
                 },
 
-                cartSubtotal() {
-                    return this.cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
+                cartSubtotal() { 
+                    return this.cart.reduce((s, i) => s + (i.price * i.qty), 0); 
                 },
 
-                cartProductionCost() {
-                    return Number(this.cart.reduce((sum, i) => sum + (i.cost * i.qty), 0).toFixed(2));
+                cartProductionCost() { 
+                    return Number(this.cart.reduce((s, i) => s + (i.cost * i.qty), 0).toFixed(2)); 
                 },
 
                 applyCoupon() {
-                    const cleanInput = this.couponInput.trim().toUpperCase();
-                    const activeCode = (this.config.cupon_codigo || 'KURO 10').trim().toUpperCase();
-                    if (this.config.cupon_activo && cleanInput === activeCode) {
-                        this.appliedCouponCode = activeCode;
-                        this.couponMessage = `¡Cupón ${activeCode} aplicado (-${this.config.cupon_descuento_pct}%)!`;
-                    } else {
-                        this.appliedCouponCode = '';
-                        this.couponMessage = 'Código inválido o expirado.';
+                    const clean = this.couponInput.trim().toUpperCase(); 
+                    const act = (this.config.cupon_codigo || 'KURO 10').trim().toUpperCase();
+                    
+                    if (this.config.cupon_activo && clean === act) { 
+                        this.appliedCouponCode = act; 
+                        this.couponMessage = `¡Cupón ${act} aplicado!`; 
+                    } else { 
+                        this.appliedCouponCode = ''; 
+                        this.couponMessage = 'Código inválido o expirado.'; 
                     }
                 },
 
-                discountAmount() {
+                discountAmount() { 
                     if (!this.appliedCouponCode) return 0;
-                    return Number((this.cartSubtotal() * (this.config.cupon_descuento_pct / 100)).toFixed(2));
+                    return Number((this.cartSubtotal() * (this.config.cupon_descuento_pct / 100)).toFixed(2)); 
                 },
 
-                cartTotal() {
-                    return Math.max(0, this.cartSubtotal() - this.discountAmount());
+                cartTotal() { 
+                    return Math.max(0, this.cartSubtotal() - this.discountAmount()); 
                 },
-
+                
                 async submitOrder() {
                     this.submitting = true;
                     const folio = 'KR-' + Math.floor(100 + Math.random() * 900);
-                    const subtotal = this.cartSubtotal();
-                    const descuento = this.discountAmount();
-                    const total = this.cartTotal();
-                    const costo_produccion = this.cartProductionCost();
-                    const utilidad_neta = Number((total - costo_produccion).toFixed(2));
-
+                    
                     const newOrder = {
-                        folio,
-                        cliente_nombre: this.checkout.nombre,
+                        folio, 
+                        cliente_nombre: this.checkout.nombre, 
                         cliente_telefono: this.checkout.telefono.replace(/\D/g, ''),
-                        modalidad_entrega: this.checkout.modalidad,
+                        modalidad_entrega: this.checkout.modalidad, 
                         ubicacion_entrega: this.checkout.ubicacion || this.config.punto_recoleccion,
-                        fecha_programada: this.checkout.fecha,
-                        metodo_pago: this.checkout.pago,
-                        pagado: false,
+                        fecha_programada: this.checkout.fecha, 
+                        metodo_pago: this.checkout.pago, 
+                        pagado: false, 
                         estado: 'nuevo',
-                        items: JSON.parse(JSON.stringify(this.cart)),
-                        subtotal,
-                        descuento,
-                        cupon_usado: this.appliedCouponCode || null,
-                        total,
-                        costo_produccion,
-                        utilidad_neta,
-                        calificacion: 0,
+                        items: JSON.parse(JSON.stringify(this.cart)), 
+                        subtotal: this.cartSubtotal(), 
+                        descuento: this.discountAmount(),
+                        cupon_usado: this.appliedCouponCode || null, 
+                        total: this.cartTotal(), 
+                        costo_produccion: this.cartProductionCost(),
+                        utilidad_neta: Number((this.cartTotal() - this.cartProductionCost()).toFixed(2)), 
+                        calificacion: 0, 
                         comentario_privado: ''
                     };
-
-                    // Guardar en Supabase en tiempo real
-                    const { data, error } = await supabaseClient.from('kuro_pedidos').insert([newOrder]).select().single();
-
-                    const savedOrder = data || { ...newOrder, id: String(Date.now()), created_at: new Date().toISOString() };
-
-                    // Respaldo en LocalStorage
-                    const orders = JSON.parse(localStorage.getItem('kuro_pedidos') || '[]');
-                    orders.unshift(savedOrder);
-                    localStorage.setItem('kuro_pedidos', JSON.stringify(orders));
-
-                    this.activeTicket = savedOrder;
-                    this.cart = [];
-                    this.appliedCouponCode = '';
-                    this.couponInput = '';
-                    this.submitting = false;
+                    
+                    const { data } = await supabaseClient.from('kuro_pedidos').insert([newOrder]).select().single();
+                    this.activeTicket = data || { ...newOrder, id: String(Date.now()), created_at: new Date().toISOString() };
+                    
+                    this.cart = []; 
+                    this.appliedCouponCode = ''; 
+                    this.couponInput = ''; 
+                    this.submitting = false; 
                     this.tab = 'ticket';
-                },
-
-                async rateOrder(stars) {
-                    if (!this.activeTicket) return;
-                    this.activeTicket.calificacion = stars;
-                    await this.syncTicketUpdate();
-                },
-
-                async sendPrivateFeedback() {
-                    if (!this.activeTicket) return;
-                    this.activeTicket.comentario_privado = this.privateFeedback;
-                    await this.syncTicketUpdate();
-                    alert('Gracias. Tu mensaje fue enviado en privado a la administración de KURO.');
-                },
-
-                async syncTicketUpdate() {
-                    await supabaseClient.from('kuro_pedidos')
-                        .update({ calificacion: this.activeTicket.calificacion, comentario_privado: this.activeTicket.comentario_privado })
-                        .eq('folio', this.activeTicket.folio);
-
-                    const orders = JSON.parse(localStorage.getItem('kuro_pedidos') || '[]');
-                    const idx = orders.findIndex(o => o.folio === this.activeTicket.folio);
-                    if (idx !== -1) {
-                        orders[idx] = this.activeTicket;
-                        localStorage.setItem('kuro_pedidos', JSON.stringify(orders));
-                    }
                 }
             }
         }
