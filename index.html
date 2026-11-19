@@ -338,7 +338,7 @@
                 <div class="bg-zinc-900/90 border border-yellow-500/40 rounded-xl px-4 py-3 flex flex-wrap items-center justify-between gap-2 text-xs">
                     <span class="font-bold text-zinc-200">
                         <span class="bg-yellow-500/20 text-yellow-400 border border-yellow-500/40 px-2 py-0.5 rounded font-extrabold mr-2"
-                              x-text="promoIntro.badgeText || ('PRUEBA -' + promoIntro.discountPct + '%')"></span>
+                              x-text="promoIntro.badgeText || 'OFERTA KURO'"></span>
                         <span x-text="promoIntro.note"></span>
                     </span>
                     <span class="text-zinc-400">Aplicado en productos disponibles</span>
@@ -662,6 +662,7 @@
                         cost: 15.00,
                         available: true,
                         promoEligible: true,
+                        discountPct: 15,
                         openInfo: false,
                         img: './img/shiro-467ml.jpg',
                         allergens: 'Contiene derivados lácteos y soya.',
@@ -691,6 +692,7 @@
                         cost: 19.50,
                         available: true,
                         promoEligible: true,
+                        discountPct: 15,
                         openInfo: false,
                         img: './img/dips-chipotle-250.jpg',
                         allergens: 'Contiene huevo y derivados lácteos.',
@@ -720,6 +722,7 @@
                         cost: 32.50,
                         available: true,
                         promoEligible: true,
+                        discountPct: 15,
                         openInfo: false,
                         img: './img/dips-chipotle-500.jpg',
                         allergens: 'Contiene huevo y derivados lácteos.',
@@ -858,26 +861,29 @@
                     if (typeof cfgData.promo_kuro_activa === 'boolean') {
                         this.promoIntro.active = cfgData.promo_kuro_activa;
                     }
-                    if (cfgData.promo_kuro_pct !== undefined && cfgData.promo_kuro_pct !== null) {
-                        this.promoIntro.discountPct = Number(cfgData.promo_kuro_pct);
-                        this.promoIntro.badgeText = cfgData.promo_kuro_texto || `PRUEBA -${cfgData.promo_kuro_pct}%`;
+                    if (cfgData.promo_kuro_texto) {
+                        this.promoIntro.badgeText = cfgData.promo_kuro_texto;
                     }
-                    if (typeof cfgData.shiro_disponible === 'boolean') {
-                        const shiro = this.kuroProducts.find(p => p.id === 'shiro');
-                        if (shiro) shiro.available = cfgData.shiro_disponible;
+                    const fallbackPct = cfgData.promo_kuro_pct !== undefined && cfgData.promo_kuro_pct !== null ? Number(cfgData.promo_kuro_pct) : 15;
+
+                    const shiro = this.kuroProducts.find(p => p.id === 'shiro');
+                    if (shiro) {
+                        if (typeof cfgData.shiro_disponible === 'boolean') shiro.available = cfgData.shiro_disponible;
+                        shiro.discountPct = cfgData.shiro_desc_pct !== undefined && cfgData.shiro_desc_pct !== null ? Number(cfgData.shiro_desc_pct) : fallbackPct;
                     }
-                    if (typeof cfgData.chipotle_disponible === 'boolean') {
-                        this.kuroProducts.forEach(p => {
-                            if (p.group === 'dips') p.available = cfgData.chipotle_disponible;
-                        });
+
+                    const dip250 = this.kuroProducts.find(p => p.id === 'chipotle-250');
+                    if (dip250) {
+                        if (typeof cfgData.chipotle_250_disponible === 'boolean') dip250.available = cfgData.chipotle_250_disponible;
+                        else if (typeof cfgData.chipotle_disponible === 'boolean') dip250.available = cfgData.chipotle_disponible;
+                        dip250.discountPct = cfgData.chipotle_250_desc_pct !== undefined && cfgData.chipotle_250_desc_pct !== null ? Number(cfgData.chipotle_250_desc_pct) : fallbackPct;
                     }
-                    if (typeof cfgData.chipotle_250_disponible === 'boolean') {
-                        const dip250 = this.kuroProducts.find(p => p.id === 'chipotle-250');
-                        if (dip250) dip250.available = cfgData.chipotle_250_disponible;
-                    }
-                    if (typeof cfgData.chipotle_500_disponible === 'boolean') {
-                        const dip500 = this.kuroProducts.find(p => p.id === 'chipotle-500');
-                        if (dip500) dip500.available = cfgData.chipotle_500_disponible;
+
+                    const dip500 = this.kuroProducts.find(p => p.id === 'chipotle-500');
+                    if (dip500) {
+                        if (typeof cfgData.chipotle_500_disponible === 'boolean') dip500.available = cfgData.chipotle_500_disponible;
+                        else if (typeof cfgData.chipotle_disponible === 'boolean') dip500.available = cfgData.chipotle_disponible;
+                        dip500.discountPct = cfgData.chipotle_500_desc_pct !== undefined && cfgData.chipotle_500_desc_pct !== null ? Number(cfgData.chipotle_500_desc_pct) : fallbackPct;
                     }
                 },
 
@@ -937,21 +943,29 @@
                     return this.kuroProducts.filter(p => p.group === this.kuroSubTab);
                 },
 
+                getProdDiscountPct(prod) {
+                    if (!this.promoIntro.active || !prod.promoEligible || prod.available === false) return 0;
+                    const pct = prod.discountPct !== undefined && prod.discountPct !== null ? Number(prod.discountPct) : Number(this.promoIntro.discountPct || 0);
+                    return Math.max(0, Math.min(95, pct));
+                },
+
                 hasPromo(prod) {
-                    return Boolean(this.promoIntro.active && prod.promoEligible && prod.available !== false && this.promoIntro.discountPct > 0);
+                    return this.getProdDiscountPct(prod) > 0;
                 },
 
                 finalKuroPrice(prod) {
-                    if (!this.hasPromo(prod)) return Number(prod.price);
-                    const factor = Math.max(0, 1 - (Number(this.promoIntro.discountPct) / 100));
+                    const pct = this.getProdDiscountPct(prod);
+                    if (pct <= 0) return Number(prod.price);
+                    const factor = Math.max(0, 1 - (pct / 100));
                     return Number((prod.price * factor).toFixed(2));
                 },
 
                 addKuroProductToCart(prod) {
                     if (prod.available === false) return;
+                    const pct = this.getProdDiscountPct(prod);
                     const unitPrice = this.finalKuroPrice(prod);
-                    const label = this.hasPromo(prod)
-                        ? `${prod.categoryLabel} (${this.promoIntro.badgeText || '-' + this.promoIntro.discountPct + '%'})`
+                    const label = pct > 0
+                        ? `${prod.categoryLabel} (-${pct}%)`
                         : prod.categoryLabel;
                     this.addToCart(prod.name, unitPrice, prod.cost, label);
                 },
