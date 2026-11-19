@@ -88,6 +88,9 @@
                                 <span>Total: <span class="text-yellow-400" x-text="'$' + Number(ord.total).toFixed(2)"></span></span>
                                 <span class="text-xs text-emerald-400" x-text="'Utilidad: $' + Number(ord.utilidad_neta).toFixed(2)"></span>
                             </div>
+                            <button type="button" @click="openOrderDetail(ord)" class="w-full bg-zinc-900 hover:bg-zinc-800 border border-yellow-500/40 text-yellow-400 font-extrabold py-2 rounded-lg text-xs transition">
+                                📄 VER PEDIDO Y DESGLOSE
+                            </button>
                             <div class="flex gap-2">
                                 <button @click="acceptAndNotifyWhatsApp(ord)" class="w-full gold-bg font-extrabold py-2.5 rounded-lg text-xs hover:brightness-110 transition">
                                     ✓ ACEPTAR
@@ -119,9 +122,14 @@
                                     <p class="text-zinc-200"><strong x-text="it.qty + 'x '"></strong><span x-text="it.name"></span> (<span class="text-zinc-400" x-text="it.details"></span>)</p>
                                 </template>
                             </div>
-                            <button @click="markReadyAndNotify(ord)" class="w-full bg-emerald-500 text-black font-extrabold py-2 rounded-lg text-xs">
-                                🔔 MARCAR LISTO + AVISAR
-                            </button>
+                            <div class="flex gap-2">
+                                <button type="button" @click="openOrderDetail(ord)" class="bg-zinc-900 hover:bg-zinc-800 border border-yellow-500/40 text-yellow-400 font-extrabold py-2 px-3 rounded-lg text-xs transition">
+                                    📄 VER PEDIDO
+                                </button>
+                                <button @click="markReadyAndNotify(ord)" class="flex-1 bg-emerald-500 text-black font-extrabold py-2 rounded-lg text-xs">
+                                    🔔 MARCAR LISTO + AVISAR
+                                </button>
+                            </div>
                         </div>
                     </template>
                 </div>
@@ -141,9 +149,14 @@
                                 <span class="text-xs font-bold uppercase text-yellow-400" x-text="ord.metodo_pago"></span>
                             </div>
                             <p class="text-xs text-zinc-400" x-text="'Total a cobrar: $' + Number(ord.total).toFixed(2)"></p>
-                            <button @click="completeAndCharge(ord)" class="w-full bg-zinc-800 hover:bg-yellow-500 hover:text-black text-white font-extrabold py-2 rounded-lg text-xs transition">
-                                💰 COBRAR Y MARCAR ENTREGADO
-                            </button>
+                            <div class="flex gap-2">
+                                <button type="button" @click="openOrderDetail(ord)" class="bg-zinc-900 hover:bg-zinc-800 border border-yellow-500/40 text-yellow-400 font-extrabold py-2 px-3 rounded-lg text-xs transition">
+                                    📄 VER PEDIDO
+                                </button>
+                                <button @click="completeAndCharge(ord)" class="flex-1 bg-zinc-800 hover:bg-yellow-500 hover:text-black text-white font-extrabold py-2 rounded-lg text-xs transition">
+                                    💰 COBRAR Y MARCAR ENTREGADO
+                                </button>
+                            </div>
                         </div>
                     </template>
                 </div>
@@ -453,6 +466,94 @@
         function kuroAdminApp() {
             return {
                 view: 'cocina',
+                detailModalOpen: false,
+                detailOrder: null,
+
+                openOrderDetail(ord) {
+                    this.detailOrder = ord;
+                    this.detailModalOpen = true;
+                },
+
+                closeOrderDetail() {
+                    this.detailModalOpen = false;
+                    this.detailOrder = null;
+                },
+
+                itemUnitOriginalPrice(it) {
+                    if (!it) return 0;
+                    if (it.original_price !== undefined && it.original_price !== null) return Number(it.original_price);
+                    const pct = Number(it.discount_pct || 0);
+                    const p = Number(it.price || 0);
+                    if (pct > 0 && pct < 100) {
+                        return Number((p / (1 - pct / 100)).toFixed(2));
+                    }
+                    return p;
+                },
+
+                itemUnitFinalPrice(it) {
+                    return Number(it?.price || 0);
+                },
+
+                itemHasDiscount(it) {
+                    return this.itemUnitOriginalPrice(it) > this.itemUnitFinalPrice(it) + 0.009;
+                },
+
+                detailItemsOriginalSubtotal(ord) {
+                    if (!ord || !Array.isArray(ord.items)) return 0;
+                    return Number(ord.items.reduce((sum, it) => sum + (this.itemUnitOriginalPrice(it) * Number(it.qty || 1)), 0).toFixed(2));
+                },
+
+                detailProductDiscountsTotal(ord) {
+                    if (!ord || !Array.isArray(ord.items)) return 0;
+                    return Number(ord.items.reduce((sum, it) => {
+                        const diff = Math.max(0, this.itemUnitOriginalPrice(it) - this.itemUnitFinalPrice(it));
+                        return sum + (diff * Number(it.qty || 1));
+                    }, 0).toFixed(2));
+                },
+
+                detailCouponDiscount(ord) {
+                    return Number(ord?.descuento || 0);
+                },
+
+                detailTotalFinal(ord) {
+                    if (!ord) return 0;
+                    if (ord.total !== undefined && ord.total !== null) return Number(ord.total);
+                    return Math.max(0, this.detailItemsOriginalSubtotal(ord) - this.detailProductDiscountsTotal(ord) - this.detailCouponDiscount(ord));
+                },
+
+                shareTicketWhatsApp(ord) {
+                    if (!ord) return;
+                    const lines = (ord.items || []).map(it => {
+                        const qty = Number(it.qty || 1);
+                        const unitFinal = this.itemUnitFinalPrice(it);
+                        const unitOrig = this.itemUnitOriginalPrice(it);
+                        const hasDisc = this.itemHasDiscount(it);
+                        const priceTxt = hasDisc
+                            ? `$${unitFinal.toFixed(2)} c/u *(antes $${unitOrig.toFixed(2)})*`
+                            : `$${unitFinal.toFixed(2)} c/u`;
+                        const ingTxt = it.details ? `\n   _Ingredientes / Detalles:_ ${it.details}` : '';
+                        return `• *${qty}x ${it.name}* — ${priceTxt} = *$${(unitFinal * qty).toFixed(2)}*${ingTxt}`;
+                    }).join('\n');
+
+                    const origSub = this.detailItemsOriginalSubtotal(ord);
+                    const prodDisc = this.detailProductDiscountsTotal(ord);
+                    const coupDisc = this.detailCouponDiscount(ord);
+                    const totalFin = this.detailTotalFinal(ord);
+
+                    let desgloseTxt = `Subtotal original: $${origSub.toFixed(2)}`;
+                    if (prodDisc > 0) desgloseTxt += `\nDescuentos en producto: -$${prodDisc.toFixed(2)}`;
+                    if (coupDisc > 0) desgloseTxt += `\nCupón (${ord.cupon_usado || 'DESC'}): -$${coupDisc.toFixed(2)}`;
+                    desgloseTxt += `\n*TOTAL A PAGAR: $${totalFin.toFixed(2)}*`;
+
+                    const msg = `🧾 *TICKET DIGITAL KURO*\n*Pedido / Folio:* ${ord.folio}\n*Cliente:* ${ord.cliente_nombre || 'Cliente'} (${ord.cliente_telefono || ''})\n*Fecha/Horario:* ${ord.fecha_programada || ''}\n*Modalidad:* ${ord.modalidad_entrega || ''}\n*Pago:* ${(ord.metodo_pago || '').toUpperCase()}\n\n*Detalle de Productos:*\n${lines}\n\n*Desglose:*\n${desgloseTxt}`;
+
+                    const phoneClean = String(ord.cliente_telefono || '').replace(/\D/g, '');
+                    const url = phoneClean
+                        ? `https://wa.me/52${phoneClean}?text=${encodeURIComponent(msg)}`
+                        : `https://wa.me/?text=${encodeURIComponent(msg)}`;
+                    window.open(url, '_blank');
+                },
+
                 orders: [], // Aquí vivirán TODOS los pedidos, históricos y actuales
                 fondoCaja: 500,
                 efectivoContado: 500,
@@ -756,5 +857,97 @@
             }
         }
     </script>
+
+    <!-- PESTAÑA / MODAL DE DETALLE DEL PEDIDO (INGREDIENTES, PRECIOS, DESGLOSE Y WHATSAPP) -->
+    <div x-show="detailModalOpen && detailOrder" x-transition.opacity x-cloak
+         class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
+         @click.self="closeOrderDetail()">
+        <div class="bg-zinc-950 border border-yellow-500/50 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 space-y-5 shadow-2xl">
+            <div class="flex items-start justify-between gap-4 border-b border-zinc-800 pb-4">
+                <div>
+                    <span class="text-[11px] uppercase tracking-widest text-yellow-400 font-bold">Ficha Completa del Pedido</span>
+                    <h2 class="text-2xl font-extrabold text-white mt-0.5" x-text="'Pedido ' + (detailOrder?.folio || '')"></h2>
+                    <p class="text-xs text-zinc-400 mt-1">
+                        Cliente: <strong class="text-white" x-text="detailOrder?.cliente_nombre || ''"></strong>
+                        <span x-show="detailOrder?.cliente_telefono" x-text="' • ' + detailOrder?.cliente_telefono"></span>
+                    </p>
+                    <p class="text-[11px] text-zinc-400 mt-0.5">
+                        Fase actual: <strong class="uppercase text-yellow-400" x-text="detailOrder?.estado || ''"></strong>
+                        <span x-show="detailOrder?.fecha_programada" x-text="' • ' + detailOrder?.fecha_programada"></span>
+                    </p>
+                </div>
+                <button type="button" @click="closeOrderDetail()" class="bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-300 hover:text-white px-3 py-1.5 rounded-lg text-xs font-extrabold">
+                    ✕ Cerrar
+                </button>
+            </div>
+
+            <!-- Lista de Productos, Cantidad, Ingredientes y Precio Unitario -->
+            <div class="space-y-3">
+                <h3 class="text-xs uppercase tracking-wider text-zinc-400 font-extrabold">Productos e Ingredientes</h3>
+                <template x-for="(it, idx) in (detailOrder?.items || [])" :key="idx">
+                    <div class="bg-zinc-900/70 border border-zinc-800 rounded-xl p-4 space-y-2">
+                        <div class="flex flex-wrap items-start justify-between gap-2">
+                            <div>
+                                <p class="text-sm font-extrabold text-white">
+                                    <span class="text-yellow-400" x-text="(it.qty || 1) + 'x'"></span>
+                                    <span x-text="it.name"></span>
+                                </p>
+                                <p class="text-xs text-zinc-300 mt-1" x-show="it.details">
+                                    <strong class="text-zinc-400">Ingredientes / Detalles:</strong>
+                                    <span x-text="it.details"></span>
+                                </p>
+                            </div>
+                            <div class="text-right text-xs">
+                                <template x-if="itemHasDiscount(it)">
+                                    <div>
+                                        <span class="line-through text-zinc-500 mr-1" x-text="'$' + itemUnitOriginalPrice(it).toFixed(2) + ' c/u'"></span>
+                                        <span class="font-extrabold text-yellow-400" x-text="'$' + itemUnitFinalPrice(it).toFixed(2) + ' c/u'"></span>
+                                    </div>
+                                </template>
+                                <template x-if="!itemHasDiscount(it)">
+                                    <span class="font-extrabold text-yellow-400" x-text="'$' + itemUnitFinalPrice(it).toFixed(2) + ' c/u'"></span>
+                                </template>
+                                <p class="text-white font-extrabold mt-0.5" x-text="'Importe: $' + (itemUnitFinalPrice(it) * (it.qty || 1)).toFixed(2)"></p>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            </div>
+
+            <!-- Desglose Total -->
+            <div class="bg-black border border-zinc-800 rounded-xl p-4 space-y-2 text-xs">
+                <h3 class="text-xs uppercase tracking-wider text-zinc-400 font-extrabold mb-2">Desglose de Costos</h3>
+                <div class="flex justify-between text-zinc-300">
+                    <span>Subtotal de productos (precio lista):</span>
+                    <span class="font-bold" x-text="'$' + detailItemsOriginalSubtotal(detailOrder).toFixed(2)"></span>
+                </div>
+                <div x-show="detailProductDiscountsTotal(detailOrder) > 0" class="flex justify-between text-emerald-400 font-semibold">
+                    <span>Descuento aplicado en productos:</span>
+                    <span x-text="'-$' + detailProductDiscountsTotal(detailOrder).toFixed(2)"></span>
+                </div>
+                <div x-show="detailCouponDiscount(detailOrder) > 0" class="flex justify-between text-emerald-400 font-semibold">
+                    <span>Descuento por cupón:</span>
+                    <span x-text="'-$' + detailCouponDiscount(detailOrder).toFixed(2)"></span>
+                </div>
+                <div class="flex justify-between text-lg font-extrabold text-yellow-400 border-t border-zinc-800 pt-2 mt-2">
+                    <span>Costo Total del Pedido:</span>
+                    <span x-text="'$' + detailTotalFinal(detailOrder).toFixed(2)"></span>
+                </div>
+            </div>
+
+            <!-- Acciones: Compartir por WhatsApp + Espacio reservado para Comanda -->
+            <div class="flex flex-col sm:flex-row gap-3 pt-1">
+                <button type="button" @click="shareTicketWhatsApp(detailOrder)"
+                        class="flex-1 bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold py-3 rounded-xl text-xs uppercase tracking-wider transition cursor-pointer">
+                    📲 Compartir Ticket por WhatsApp
+                </button>
+                <button type="button" disabled title="Disponible en próxima actualización"
+                        class="bg-zinc-900 border border-zinc-800 text-zinc-500 font-bold py-3 px-4 rounded-xl text-xs uppercase tracking-wider cursor-not-allowed">
+                    🖨️ Imprimir Comanda (Pronto)
+                </button>
+            </div>
+        </div>
+    </div>
+
 </body>
 </html>
