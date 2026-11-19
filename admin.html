@@ -521,7 +521,7 @@
                     return Math.max(0, this.detailItemsOriginalSubtotal(ord) - this.detailProductDiscountsTotal(ord) - this.detailCouponDiscount(ord));
                 },
 
-                shareTicketWhatsApp(ord) {
+                shareTicketWhatsApp(ord, target = 'cliente') {
                     if (!ord) return;
                     const lines = (ord.items || []).map(it => {
                         const qty = Number(it.qty || 1);
@@ -545,7 +545,17 @@
                     if (coupDisc > 0) desgloseTxt += `\nCupón (${ord.cupon_usado || 'DESC'}): -$${coupDisc.toFixed(2)}`;
                     desgloseTxt += `\n*TOTAL A PAGAR: $${totalFin.toFixed(2)}*`;
 
-                    const msg = `🧾 *TICKET DIGITAL KURO*\n*Pedido / Folio:* ${ord.folio}\n*Cliente:* ${ord.cliente_nombre || 'Cliente'} (${ord.cliente_telefono || ''})\n*Fecha/Horario:* ${ord.fecha_programada || ''}\n*Modalidad:* ${ord.modalidad_entrega || ''}\n*Pago:* ${(ord.metodo_pago || '').toUpperCase()}\n\n*Detalle de Productos:*\n${lines}\n\n*Desglose:*\n${desgloseTxt}`;
+                    const encabezado = target === 'negocio'
+                        ? '📋 *COPIA DE CONTROL INTERNO KURO*'
+                        : '🧾 *TICKET DIGITAL KURO*';
+
+                    const msg = `${encabezado}\n*Pedido / Folio:* ${ord.folio}\n*Cliente:* ${ord.cliente_nombre || 'Cliente'} (${ord.cliente_telefono || ''})\n*Fecha/Horario:* ${ord.fecha_programada || ''}\n*Modalidad:* ${ord.modalidad_entrega || ''}\n*Pago:* ${(ord.metodo_pago || '').toUpperCase()}\n\n*Detalle de Productos:*\n${lines}\n\n*Desglose:*\n${desgloseTxt}`;
+
+                    if (target === 'negocio') {
+                        const adminPhone = String(this.config.whatsapp_negocio || '524622431013').replace(/\D/g, '');
+                        window.open(`https://wa.me/${adminPhone}?text=${encodeURIComponent(msg)}`, '_blank');
+                        return;
+                    }
 
                     const phoneClean = String(ord.cliente_telefono || '').replace(/\D/g, '');
                     const url = phoneClean
@@ -589,8 +599,6 @@
                             this.playBeep();
                             this.loadOrdersOnly();
                         }).subscribe();
-                        
-                    // removed storage event reload to avoid overwriting active edits
                 },
 
                 playBeep() {
@@ -703,7 +711,6 @@
                     await this.saveConfig();
                 },
 
-                // FITRO PRINCIPAL: Pedidos de este turno (que no han sido archivados por el corte)
                 pedidosTurno() {
                     return this.orders.filter(o => !o.archivado);
                 },
@@ -756,7 +763,6 @@
                     return this.efectivoContado - (this.fondoCaja + this.sumByPayment('efectivo'));
                 },
 
-                // EL CRM LEE TODOS LOS PEDIDOS HISTÓRICOS (Ignora el corte de caja)
                 crmClients() {
                     const map = {};
                     this.orders.forEach(o => {
@@ -771,7 +777,6 @@
                     return Object.values(map);
                 },
 
-                // LOS NÚMEROS SOLO REFLEJAN EL TURNO ACTUAL
                 totalSales() {
                     return this.pedidosTurno().filter(o => o.estado !== 'cancelado').reduce((s, o) => s + Number(o.total), 0);
                 },
@@ -793,7 +798,6 @@
                     return `Llevas ${count} pedidos válidos sincronizados en este turno con ventas por $${sales} MXN. Descontando el costo exacto de tus insumos y los $250.00 de gastos fijos mensuales, tu utilidad neta libre actual es de $${util} MXN.`;
                 },
 
-                // FUNCIÓN ESTRELLA: CORTE DE CAJA Y EXCEL
                 async realizarCorte() {
                     const pendientes = this.pedidosTurno().filter(o => ['nuevo', 'preparando', 'listo'].includes(o.estado));
                     if (pendientes.length > 0) {
@@ -811,7 +815,6 @@
                     const confirmacion = confirm(`Vas a hacer el corte de caja de ${pedidosCobradosOCancelados.length} pedidos. Se descargará tu Excel y el turno empezará desde cero. ¿Confirmar?`);
                     if(!confirmacion) return;
 
-                    // 1. CREAR EL EXCEL
                     const datosParaExcel = pedidosCobradosOCancelados.map(p => ({
                         Folio: p.folio,
                         Fecha: new Date(p.created_at).toLocaleString(),
@@ -836,7 +839,6 @@
                     const fechaStr = new Date().toISOString().split('T')[0];
                     XLSX.writeFile(libroExcel, `Corte_Caja_KURO_${fechaStr}.xlsx`);
 
-                    // 2. ARCHIVAR EN SUPABASE PARA INICIAR DE CERO
                     const foliosAArchivar = pedidosCobradosOCancelados.map(p => p.folio);
                     
                     const { error } = await supabaseClient
@@ -935,14 +937,23 @@
                 </div>
             </div>
 
-            <!-- Acciones: Compartir por WhatsApp + Espacio reservado para Comanda -->
-            <div class="flex flex-col sm:flex-row gap-3 pt-1">
-                <button type="button" @click="shareTicketWhatsApp(detailOrder)"
-                        class="flex-1 bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold py-3 rounded-xl text-xs uppercase tracking-wider transition cursor-pointer">
-                    📲 Compartir Ticket por WhatsApp
-                </button>
+            <!-- Acciones Divididas: WhatsApp Cliente / WhatsApp KURO (4622431013) + Comanda -->
+            <div class="space-y-2.5 pt-1">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <button type="button" @click="shareTicketWhatsApp(detailOrder, 'cliente')"
+                            class="bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold py-3 px-4 rounded-xl text-xs uppercase tracking-wider transition cursor-pointer flex items-center justify-center gap-1.5">
+                        <span>📲 Enviar al Cliente</span>
+                        <span class="text-[10px] opacity-80" x-show="detailOrder?.cliente_telefono" x-text="'(' + detailOrder.cliente_telefono + ')'"></span>
+                    </button>
+
+                    <button type="button" @click="shareTicketWhatsApp(detailOrder, 'negocio')"
+                            class="bg-zinc-900 hover:bg-yellow-500 border border-yellow-500/60 text-yellow-400 hover:text-black font-extrabold py-3 px-4 rounded-xl text-xs uppercase tracking-wider transition cursor-pointer flex items-center justify-center gap-1.5">
+                        <span>📋 Enviar a KURO (462 243 1013)</span>
+                    </button>
+                </div>
+
                 <button type="button" disabled title="Disponible en próxima actualización"
-                        class="bg-zinc-900 border border-zinc-800 text-zinc-500 font-bold py-3 px-4 rounded-xl text-xs uppercase tracking-wider cursor-not-allowed">
+                        class="w-full bg-zinc-900/60 border border-zinc-800 text-zinc-500 font-bold py-2.5 px-4 rounded-xl text-[11px] uppercase tracking-wider cursor-not-allowed">
                     🖨️ Imprimir Comanda (Pronto)
                 </button>
             </div>
