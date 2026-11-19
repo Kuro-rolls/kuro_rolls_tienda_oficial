@@ -48,6 +48,9 @@
                 <button @click="view = 'asesor'" :class="view==='asesor' ? 'gold-bg' : 'bg-zinc-900 text-zinc-400'" class="px-4 py-2 rounded-xl transition">
                     5. Asesor IA + Pre-Orden
                 </button>
+                <button @click="view = 'linea-kuro'" :class="view==='linea-kuro' ? 'gold-bg' : 'bg-zinc-900 text-zinc-400'" class="px-4 py-2 rounded-xl transition">
+                    6. Línea KURO
+                </button>
             </nav>
         </div>
     </header>
@@ -321,6 +324,87 @@
             </div>
         </section>
 
+        <!-- MÓDULO 6: CONTROL DE LÍNEA KURO (DRINKS & DIPS + DESCUENTO) -->
+        <section x-show="view === 'linea-kuro'" x-cloak class="space-y-6">
+            <div class="bg-zinc-900 border border-yellow-500/40 rounded-2xl p-6 space-y-4">
+                <div class="flex flex-wrap items-center justify-between gap-4 border-b border-zinc-800 pb-4">
+                    <div>
+                        <h2 class="text-xl font-extrabold text-yellow-400">Control de Línea KURO en Tiempo Real</h2>
+                        <p class="text-xs text-zinc-400 mt-1">Activa o apaga stock de Shiro y Dip's Chipotle (250 ml / 500 ml) y ajusta el descuento introductorio sin tocar código.</p>
+                    </div>
+                    <button @click="saveKuroLineConfig()" class="gold-bg font-extrabold px-6 py-2.5 rounded-xl text-xs hover:brightness-110 transition">
+                        💾 Guardar Cambios en Supabase
+                    </button>
+                </div>
+
+                <!-- Promoción Línea KURO -->
+                <div class="bg-black border border-zinc-800 rounded-xl p-4 grid sm:grid-cols-3 gap-4 items-center">
+                    <label class="flex items-center gap-3 cursor-pointer">
+                        <input type="checkbox" x-model="config.promo_kuro_activa" class="w-5 h-5 accent-yellow-500 rounded">
+                        <div>
+                            <p class="text-xs font-extrabold text-white uppercase">Descuento Línea KURO</p>
+                            <p class="text-[11px] text-zinc-400" x-text="config.promo_kuro_activa ? 'Activo en tienda' : 'Apagado'"></p>
+                        </div>
+                    </label>
+
+                    <div>
+                        <label class="text-[11px] text-zinc-400 block mb-1">% Descuento de Prueba</label>
+                        <input type="number" min="0" max="90" x-model.number="config.promo_kuro_pct"
+                               @input="config.promo_kuro_texto = 'PRUEBA -' + (config.promo_kuro_pct || 0) + '%'"
+                               class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm font-bold text-white">
+                    </div>
+
+                    <div>
+                        <label class="text-[11px] text-zinc-400 block mb-1">Etiqueta en Tarjeta</label>
+                        <input type="text" x-model="config.promo_kuro_texto"
+                               class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm font-bold text-yellow-400">
+                    </div>
+                </div>
+
+                <!-- Disponibilidad por Producto -->
+                <div class="grid sm:grid-cols-3 gap-4 pt-2">
+                    <div class="bg-black border border-zinc-800 rounded-xl p-4 flex items-center justify-between gap-3">
+                        <div>
+                            <span class="text-[10px] uppercase tracking-wider text-yellow-400 font-bold">KURO DRINKS</span>
+                            <h3 class="text-sm font-extrabold text-white">Shiro (467 ml)</h3>
+                            <p class="text-[11px] text-zinc-400">Lista: $30.00</p>
+                        </div>
+                        <label class="inline-flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" x-model="config.shiro_disponible" class="w-5 h-5 accent-yellow-500 rounded">
+                            <span class="text-xs font-bold" :class="config.shiro_disponible ? 'text-emerald-400' : 'text-red-400'"
+                                  x-text="config.shiro_disponible ? 'Disponible' : 'Agotado'"></span>
+                        </label>
+                    </div>
+
+                    <div class="bg-black border border-zinc-800 rounded-xl p-4 flex items-center justify-between gap-3">
+                        <div>
+                            <span class="text-[10px] uppercase tracking-wider text-yellow-400 font-bold">KURO DIPS</span>
+                            <h3 class="text-sm font-extrabold text-white">Dip's Chipotle (250 ml)</h3>
+                            <p class="text-[11px] text-zinc-400">Lista: $40.00</p>
+                        </div>
+                        <label class="inline-flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" x-model="config.chipotle_250_disponible" class="w-5 h-5 accent-yellow-500 rounded">
+                            <span class="text-xs font-bold" :class="config.chipotle_250_disponible ? 'text-emerald-400' : 'text-red-400'"
+                                  x-text="config.chipotle_250_disponible ? 'Disponible' : 'Agotado'"></span>
+                        </label>
+                    </div>
+
+                    <div class="bg-black border border-zinc-800 rounded-xl p-4 flex items-center justify-between gap-3">
+                        <div>
+                            <span class="text-[10px] uppercase tracking-wider text-yellow-400 font-bold">KURO DIPS</span>
+                            <h3 class="text-sm font-extrabold text-white">Dip's Chipotle (500 ml)</h3>
+                            <p class="text-[11px] text-zinc-400">Lista: $62.00</p>
+                        </div>
+                        <label class="inline-flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" x-model="config.chipotle_500_disponible" class="w-5 h-5 accent-yellow-500 rounded">
+                            <span class="text-xs font-bold" :class="config.chipotle_500_disponible ? 'text-emerald-400' : 'text-red-400'"
+                                  x-text="config.chipotle_500_disponible ? 'Disponible' : 'Agotado'"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </section>
+
     </main>
 
     <script>
@@ -349,7 +433,13 @@
                     cupon_descuento_pct: 10,
                     cupon_activo: true,
                     google_maps_link: '',
-                    whatsapp_negocio: '524622431013'
+                    whatsapp_negocio: '524622431013',
+                    promo_kuro_activa: true,
+                    promo_kuro_pct: 15,
+                    promo_kuro_texto: 'PRUEBA -15%',
+                    shiro_disponible: true,
+                    chipotle_250_disponible: true,
+                    chipotle_500_disponible: true
                 },
 
                 async initAdmin() {
@@ -386,8 +476,17 @@
 
                     const { data: cfgData } = await supabaseClient.from('kuro_config').select('*').eq('id', 1).single();
                     if (cfgData) {
-                        this.config = cfgData;
-                        localStorage.setItem('kuro_config', JSON.stringify(cfgData));
+                        this.config = {
+                            ...this.config,
+                            ...cfgData,
+                            promo_kuro_activa: typeof cfgData.promo_kuro_activa === 'boolean' ? cfgData.promo_kuro_activa : true,
+                            promo_kuro_pct: cfgData.promo_kuro_pct !== undefined && cfgData.promo_kuro_pct !== null ? Number(cfgData.promo_kuro_pct) : 15,
+                            promo_kuro_texto: cfgData.promo_kuro_texto || 'PRUEBA -15%',
+                            shiro_disponible: typeof cfgData.shiro_disponible === 'boolean' ? cfgData.shiro_disponible : true,
+                            chipotle_250_disponible: typeof cfgData.chipotle_250_disponible === 'boolean' ? cfgData.chipotle_250_disponible : true,
+                            chipotle_500_disponible: typeof cfgData.chipotle_500_disponible === 'boolean' ? cfgData.chipotle_500_disponible : true
+                        };
+                        localStorage.setItem('kuro_config', JSON.stringify(this.config));
                     }
                     this.fechasTexto = (this.config.fechas_entrega || []).join('\n');
                 },
@@ -401,6 +500,26 @@
                     await supabaseClient.from('kuro_config').upsert([{ id: 1, ...this.config }]);
                     localStorage.setItem('kuro_config', JSON.stringify(this.config));
                     alert('Configuración guardada en Supabase en tiempo real.');
+                },
+
+                async saveKuroLineConfig() {
+                    const payload = {
+                        id: 1,
+                        promo_kuro_activa: Boolean(this.config.promo_kuro_activa),
+                        promo_kuro_pct: Number(this.config.promo_kuro_pct || 0),
+                        promo_kuro_texto: this.config.promo_kuro_texto || `PRUEBA -${Number(this.config.promo_kuro_pct || 0)}%`,
+                        shiro_disponible: Boolean(this.config.shiro_disponible),
+                        chipotle_250_disponible: Boolean(this.config.chipotle_250_disponible),
+                        chipotle_500_disponible: Boolean(this.config.chipotle_500_disponible)
+                    };
+                    const { error } = await supabaseClient.from('kuro_config').upsert([payload]);
+                    if (error) {
+                        alert('Error al guardar Línea KURO en Supabase: ' + error.message);
+                        return;
+                    }
+                    this.config = { ...this.config, ...payload };
+                    localStorage.setItem('kuro_config', JSON.stringify(this.config));
+                    alert('Línea KURO actualizada en tiempo real.');
                 },
 
                 async savePreorderDates() {
