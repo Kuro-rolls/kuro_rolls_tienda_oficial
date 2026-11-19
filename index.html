@@ -158,6 +158,7 @@
                 <button @click="tab = 'inicio'" :class="tab==='inicio' ? 'gold-bg font-bold' : 'text-zinc-400 hover:text-white'" class="px-3 py-1.5 rounded-full transition">Inicio</button>
                 <button @click="tab = 'tu-estilo'" :class="tab==='tu-estilo' ? 'gold-bg font-bold' : 'text-zinc-400 hover:text-white'" class="px-3 py-1.5 rounded-full transition">Tu Estilo</button>
                 <button @click="tab = 'catalogo'" :class="tab==='catalogo' ? 'gold-bg font-bold' : 'text-zinc-400 hover:text-white'" class="px-3 py-1.5 rounded-full transition">Especialidades</button>
+                <button @click="tab = 'linea-kuro'" :class="tab==='linea-kuro' ? 'gold-bg font-bold' : 'text-zinc-400 hover:text-white'" class="px-3 py-1.5 rounded-full transition">Línea KURO</button>
                 <button @click="tab = 'seleccion'" :class="tab==='seleccion' ? 'gold-bg font-bold' : 'bg-zinc-900 text-yellow-400 border border-yellow-500/40'" class="px-3 py-1.5 rounded-full transition flex items-center gap-1.5">
                     <span>Tu Orden</span>
                     <span class="bg-black text-yellow-400 px-2 py-0.5 rounded-full text-xs font-bold" x-text="cart.reduce((a,b)=>a+b.qty,0)">0</span>
@@ -319,6 +320,142 @@
             </div>
         </section>
 
+        <!-- PESTAÑA: LÍNEA KURO (DRINKS & DIPS + SUPABASE STOCK + FICHA DESPLEGABLE POR QR) -->
+        <section x-show="tab === 'linea-kuro'" x-transition x-cloak class="max-w-3xl mx-auto space-y-6">
+            <div class="text-center border-b border-zinc-800 pb-5">
+                <span class="text-xs uppercase tracking-widest gold-text font-bold">Ecosistema de Producto</span>
+                <h2 class="font-serif-kuro text-3xl text-white mt-1">Línea KURO</h2>
+                <p class="text-zinc-400 text-sm mt-1">Bebidas y aderezos artesanales con ficha técnica digital.</p>
+
+                <!-- Selector interno: KURO DRINKS / KURO DIPS -->
+                <div class="inline-flex bg-zinc-900 border border-zinc-800 p-1 rounded-xl mt-5 gap-1">
+                    <button type="button" @click="kuroSubTab = 'drinks'"
+                            :class="kuroSubTab === 'drinks' ? 'gold-bg font-extrabold' : 'text-zinc-400 hover:text-white'"
+                            class="px-4 py-2 rounded-lg text-xs uppercase tracking-wider transition">
+                        KURO DRINKS
+                    </button>
+                    <button type="button" @click="kuroSubTab = 'dips'"
+                            :class="kuroSubTab === 'dips' ? 'gold-bg font-extrabold' : 'text-zinc-400 hover:text-white'"
+                            class="px-4 py-2 rounded-lg text-xs uppercase tracking-wider transition">
+                        KURO DIPS
+                    </button>
+                </div>
+            </div>
+
+            <!-- Aviso sobrio de descuento introductorio controlado desde Supabase -->
+            <template x-if="promoIntro.active && promoIntro.discountPct > 0">
+                <div class="bg-zinc-900/90 border border-yellow-500/40 rounded-xl px-4 py-3 flex flex-wrap items-center justify-between gap-2 text-xs">
+                    <span class="font-bold text-zinc-200">
+                        <span class="bg-yellow-500/20 text-yellow-400 border border-yellow-500/40 px-2 py-0.5 rounded font-extrabold mr-2"
+                              x-text="promoIntro.badgeText || ('PRUEBA -' + promoIntro.discountPct + '%')"></span>
+                        <span x-text="promoIntro.note"></span>
+                    </span>
+                    <span class="text-zinc-400">Aplicado en productos disponibles</span>
+                </div>
+            </template>
+
+            <div class="space-y-6">
+                <template x-for="prod in filteredKuroProducts()" :key="prod.id">
+                    <article :id="'kuro-prod-' + prod.id"
+                             class="kuro-card bg-[#0c0c0c] border rounded-2xl p-5 md:p-6 space-y-4 shadow-xl"
+                             :class="prod.available !== false ? 'border-zinc-800' : 'border-zinc-800/70'">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
+                            <div class="flex items-center gap-4">
+                                <div class="kuro-img-box w-20 h-20 rounded-xl border border-zinc-800 bg-zinc-900">
+                                    <img :src="prod.img" :alt="prod.name" :class="prod.available === false ? 'opacity-60 grayscale' : ''" onerror="this.src='https://images.unsplash.com/photo-1544145945-f90425340c7e?auto=format&fit=crop&q=80&w=200'">
+                                </div>
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-[11px] uppercase tracking-widest gold-text font-bold" x-text="prod.categoryLabel"></span>
+                                        <span x-show="prod.available === false" class="text-[10px] uppercase tracking-wider bg-zinc-800 text-zinc-300 border border-zinc-700 px-2 py-0.5 rounded font-bold">
+                                            Sin stock
+                                        </span>
+                                    </div>
+                                    <h3 class="font-serif-kuro text-2xl text-white font-bold" x-text="prod.name"></h3>
+                                    <p class="text-xs text-zinc-400 mt-0.5" x-text="prod.subtitle"></p>
+                                </div>
+                            </div>
+
+                            <div class="sm:text-right">
+                                <template x-if="prod.available !== false">
+                                    <div>
+                                        <template x-if="hasPromo(prod)">
+                                            <div>
+                                                <span class="text-xs line-through text-zinc-500 mr-1.5" x-text="'$' + prod.price.toFixed(2)"></span>
+                                                <span class="text-2xl font-extrabold gold-text" x-text="'$' + finalKuroPrice(prod).toFixed(2)"></span>
+                                            </div>
+                                        </template>
+                                        <template x-if="!hasPromo(prod)">
+                                            <span class="text-2xl font-extrabold gold-text" x-text="'$' + prod.price.toFixed(2)"></span>
+                                        </template>
+                                    </div>
+                                </template>
+                                <template x-if="prod.available === false">
+                                    <span class="text-sm font-extrabold uppercase tracking-wider text-zinc-400">Agotado por el momento</span>
+                                </template>
+                                <p class="text-[11px] text-zinc-400 mt-0.5" x-text="prod.allergens"></p>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-wrap gap-2 text-[11px] font-bold uppercase tracking-wider relative z-10">
+                            <span class="bg-zinc-900 border border-zinc-800 px-3 py-1 rounded-lg text-zinc-300" x-text="prod.storage"></span>
+                            <span class="bg-zinc-900 border border-zinc-800 px-3 py-1 rounded-lg gold-text" x-text="prod.handling"></span>
+                        </div>
+
+                        <div class="flex flex-col sm:flex-row gap-3 pt-1 relative z-10">
+                            <!-- Botón dinámico según disponibilidad en Supabase -->
+                            <button type="button"
+                                    :disabled="prod.available === false"
+                                    @click="if (prod.available !== false) addKuroProductToCart(prod)"
+                                    :class="prod.available !== false
+                                        ? 'btn-shimmer gold-bg font-extrabold hover:brightness-110 cursor-pointer'
+                                        : 'bg-zinc-900 border border-zinc-800 text-zinc-500 font-bold cursor-not-allowed'"
+                                    class="flex-1 py-3 rounded-xl text-xs uppercase tracking-wider transition">
+                                <span x-text="prod.available !== false ? '+ Agregar a mi orden' : 'Agotado por el momento'"></span>
+                            </button>
+
+                            <!-- Botón de tabla nutrimental siempre accesible (especialmente al escanear QR) -->
+                            <button type="button" @click="prod.openInfo = !prod.openInfo"
+                                    class="flex-1 bg-zinc-900 border border-zinc-700 hover:border-yellow-500 text-white font-bold py-3 rounded-xl text-xs uppercase tracking-wider transition">
+                                <span x-text="prod.openInfo ? 'Ocultar Info Nutrimental' : 'Información Nutrimental e Ingredientes'"></span>
+                            </button>
+                        </div>
+
+                        <!-- Panel Desplegable de Información Nutrimental e Ingredientes -->
+                        <div x-show="prod.openInfo" x-transition x-cloak
+                             class="border-t border-zinc-800 pt-4 space-y-4 relative z-10">
+                            <div>
+                                <h4 class="text-xs uppercase tracking-widest text-zinc-400 font-bold mb-1">Ingredientes</h4>
+                                <p class="text-xs sm:text-sm text-zinc-200 leading-relaxed" x-text="prod.ingredients"></p>
+                            </div>
+
+                            <div class="bg-black border-2 border-zinc-200 rounded-xl p-4 sm:p-5 text-white">
+                                <div class="border-b-4 border-white pb-2 mb-3">
+                                    <h4 class="text-base sm:text-lg font-extrabold tracking-wide uppercase">Declaración Nutrimental</h4>
+                                    <p class="text-xs text-zinc-300 mt-1">Porciones por envase: <strong class="text-white" x-text="prod.nutrition.servings"></strong></p>
+                                    <p class="text-xs text-zinc-300">Tamaño de la porción: <strong class="text-white" x-text="prod.nutrition.portionSize"></strong></p>
+                                </div>
+
+                                <div class="flex justify-between items-baseline border-b-2 border-white py-2 text-xs sm:text-sm font-extrabold">
+                                    <span>Contenido Energético</span>
+                                    <span x-text="prod.nutrition.energy"></span>
+                                </div>
+
+                                <div class="divide-y divide-zinc-800 text-xs sm:text-sm">
+                                    <template x-for="row in prod.nutrition.rows" :key="row.label">
+                                        <div class="flex justify-between py-2" :class="row.indent ? 'pl-4 text-zinc-300' : 'font-bold'">
+                                            <span x-text="row.label"></span>
+                                            <span :class="row.indent ? 'font-semibold text-white' : 'font-bold'" x-text="row.value"></span>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+                </template>
+            </div>
+        </section>
+
         <!-- 4. CHECKOUT / PRE-ORDEN (BLOQUEADO SI NO ES VIP) -->
         <section x-show="tab === 'seleccion'" x-transition x-cloak class="max-w-2xl mx-auto space-y-6">
             <h2 class="font-serif-kuro text-3xl gold-text text-center">Tu Pre-Orden KURO</h2>
@@ -333,7 +470,7 @@
                         <div class="pr-3">
                             <p class="font-bold text-sm text-white" x-text="item.name"></p>
                             <p class="text-xs text-zinc-400" x-show="item.details" x-text="item.details"></p>
-                            <p class="text-xs gold-text font-semibold" x-text="'$' + item.price + ' c/u'"></p>
+                            <p class="text-xs gold-text font-semibold" x-text="'$' + Number(item.price).toFixed(2) + ' c/u'"></p>
                         </div>
                         <div class="flex items-center gap-2">
                             <button @click="decrementCart(idx)" class="w-7 h-7 bg-zinc-800 rounded text-xs font-bold hover:bg-zinc-700">-</button>
@@ -474,7 +611,6 @@
             <div class="mt-10 border-t border-zinc-800 pt-8">
                 <h3 class="font-serif-kuro text-xl gold-text mb-6">Síguenos en nuestras redes sociales</h3>
                 <div class="flex justify-center gap-5">
-                    
                     <!-- Facebook -->
                    <a href="https://www.facebook.com/share/19jTZwA6U7/" target="_blank" class="w-14 h-14 bg-zinc-900 border border-zinc-700 text-zinc-400 hover:text-white hover:border-yellow-500 hover:shadow-[0_0_15px_rgba(234,179,8,0.2)] rounded-xl flex items-center justify-center transition duration-300 transform hover:scale-105">
                          <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v3.385z"/></svg>
@@ -519,6 +655,7 @@
         function kuroClientApp() {
             return {
                 tab: 'inicio',
+                kuroSubTab: 'drinks',
                 cart: [],
                 couponInput: '',
                 appliedCouponCode: '',
@@ -527,7 +664,105 @@
                 activeTicket: null,
                 submitting: false,
                 toastMessage: '',
-                isVip: false, // NUEVO: Control VIP
+                isVip: false,
+
+                // Sincronizado con kuro_config en Supabase (15% por defecto)
+                promoIntro: {
+                    active: true,
+                    discountPct: 15,
+                    badgeText: 'PRUEBA -15%',
+                    note: 'Precio especial de introducción para probar la línea.'
+                },
+
+                kuroProducts: [
+                    {
+                        id: 'shiro',
+                        group: 'drinks',
+                        categoryLabel: 'KURO DRINKS',
+                        name: 'Shiro',
+                        subtitle: 'Bebida Láctea Cítrica • Contenido Neto: 467 ml',
+                        price: 30,
+                        cost: 15.00,
+                        available: true,
+                        promoEligible: true,
+                        openInfo: false,
+                        img: './img/shiro-467ml.jpg',
+                        allergens: 'Contiene derivados lácteos y soya.',
+                        storage: '❄️ Manténgase en refrigeración',
+                        handling: '🔄 Agítese bien antes de abrir',
+                        ingredients: 'Agua purificada, concentrado lácteo sabor cítrico (contiene derivados de leche y soya), azúcares añadidos (sacarosa), leche entera en polvo deslactosada, ácido cítrico y estabilizante (goma xantana).',
+                        nutrition: {
+                            servings: '1',
+                            portionSize: '467 ml',
+                            energy: '243 kcal (1023 kJ)',
+                            rows: [
+                                { label: 'Proteínas', value: '3.2 g', indent: false },
+                                { label: 'Grasas Totales', value: '2.4 g', indent: false },
+                                { label: 'Hidratos de Carbono Disponibles', value: '53.7 g', indent: false },
+                                { label: 'Azúcares añadidos', value: '42.1 g', indent: true },
+                                { label: 'Sodio', value: '85 mg', indent: false }
+                            ]
+                        }
+                    },
+                    {
+                        id: 'chipotle-250',
+                        group: 'dips',
+                        categoryLabel: 'KURO DIPS',
+                        name: "Dip's Chipotle (250 ml)",
+                        subtitle: 'Aderezo Cremoso de Chipotle Artesanal • Contenido Neto: 250 ml',
+                        price: 40,
+                        cost: 19.50,
+                        available: true,
+                        promoEligible: true,
+                        openInfo: false,
+                        img: './img/dips-chipotle-250.jpg',
+                        allergens: 'Contiene huevo y derivados lácteos.',
+                        storage: '❄️ Manténgase en refrigeración',
+                        handling: '🔄 Agítese o mézclese antes de servir',
+                        ingredients: 'Base cremosa de aderezo, mayonesa (aceite vegetal, yema de huevo, vinagre, sal), chile chipotle adobado, salsa de soya natural, vinagre preparado y concentrado de limón.',
+                        nutrition: {
+                            servings: 'Aprox. 8 porciones',
+                            portionSize: '30 ml (2 cucharadas)',
+                            energy: '118 kcal (494 kJ)',
+                            rows: [
+                                { label: 'Proteínas', value: '1.1 g', indent: false },
+                                { label: 'Grasas Totales', value: '11.8 g', indent: false },
+                                { label: 'Hidratos de Carbono Disponibles', value: '2.2 g', indent: false },
+                                { label: 'Azúcares añadidos', value: '0.6 g', indent: true },
+                                { label: 'Sodio', value: '145 mg', indent: false }
+                            ]
+                        }
+                    },
+                    {
+                        id: 'chipotle-500',
+                        group: 'dips',
+                        categoryLabel: 'KURO DIPS',
+                        name: "Dip's Chipotle (500 ml)",
+                        subtitle: 'Aderezo Cremoso de Chipotle Artesanal • Contenido Neto: 500 ml',
+                        price: 62,
+                        cost: 32.50,
+                        available: true,
+                        promoEligible: true,
+                        openInfo: false,
+                        img: './img/dips-chipotle-500.jpg',
+                        allergens: 'Contiene huevo y derivados lácteos.',
+                        storage: '❄️ Manténgase en refrigeración',
+                        handling: '🔄 Agítese o mézclese antes de servir',
+                        ingredients: 'Base cremosa de aderezo, mayonesa (aceite vegetal, yema de huevo, vinagre, sal), chile chipotle adobado, salsa de soya natural, vinagre preparado y concentrado de limón.',
+                        nutrition: {
+                            servings: 'Aprox. 16.5 porciones',
+                            portionSize: '30 ml (2 cucharadas)',
+                            energy: '118 kcal (494 kJ)',
+                            rows: [
+                                { label: 'Proteínas', value: '1.1 g', indent: false },
+                                { label: 'Grasas Totales', value: '11.8 g', indent: false },
+                                { label: 'Hidratos de Carbono Disponibles', value: '2.2 g', indent: false },
+                                { label: 'Azúcares añadidos', value: '0.6 g', indent: true },
+                                { label: 'Sodio', value: '145 mg', indent: false }
+                            ]
+                        }
+                    }
+                ],
 
                 config: {
                     fechas_entrega: [
@@ -641,26 +876,108 @@
                     { name: 'Soya Picante 2 oz', price: 8, cost: 6.00, img: './img/soyapicante2oz.jpg' }
                 ],
 
+                applyConfigToKuro(cfgData) {
+                    if (!cfgData) return;
+                    if (typeof cfgData.promo_kuro_activa === 'boolean') {
+                        this.promoIntro.active = cfgData.promo_kuro_activa;
+                    }
+                    if (cfgData.promo_kuro_pct !== undefined && cfgData.promo_kuro_pct !== null) {
+                        this.promoIntro.discountPct = Number(cfgData.promo_kuro_pct);
+                        this.promoIntro.badgeText = cfgData.promo_kuro_texto || `PRUEBA -${cfgData.promo_kuro_pct}%`;
+                    }
+                    if (typeof cfgData.shiro_disponible === 'boolean') {
+                        const shiro = this.kuroProducts.find(p => p.id === 'shiro');
+                        if (shiro) shiro.available = cfgData.shiro_disponible;
+                    }
+                    if (typeof cfgData.chipotle_disponible === 'boolean') {
+                        this.kuroProducts.forEach(p => {
+                            if (p.group === 'dips') p.available = cfgData.chipotle_disponible;
+                        });
+                    }
+                    if (typeof cfgData.chipotle_250_disponible === 'boolean') {
+                        const dip250 = this.kuroProducts.find(p => p.id === 'chipotle-250');
+                        if (dip250) dip250.available = cfgData.chipotle_250_disponible;
+                    }
+                    if (typeof cfgData.chipotle_500_disponible === 'boolean') {
+                        const dip500 = this.kuroProducts.find(p => p.id === 'chipotle-500');
+                        if (dip500) dip500.available = cfgData.chipotle_500_disponible;
+                    }
+                },
+
                 async initApp() {
-                    // Lógica para detectar si es cliente VIP o Catálogo Público
                     const urlParams = new URLSearchParams(window.location.search);
                     if (urlParams.get('kuro') === 'vip') {
                         this.isVip = true;
+                    }
+
+                    const requestedTab = urlParams.get('tab');
+                    const requestedProd = urlParams.get('prod');
+                    const fromQr = urlParams.get('qr') === '1';
+
+                    if (requestedTab === 'linea-kuro' || requestedProd) {
+                        this.tab = 'linea-kuro';
+                        const target = this.kuroProducts.find(p => p.id === requestedProd)
+                            || (requestedProd === 'chipotle' ? this.kuroProducts.find(p => p.group === 'dips') : null);
+                        if (target) {
+                            this.kuroSubTab = target.group;
+                            if (fromQr) {
+                                if (requestedProd === 'chipotle') {
+                                    this.kuroProducts.forEach(p => { if (p.group === 'dips') p.openInfo = true; });
+                                } else {
+                                    target.openInfo = true;
+                                }
+                            }
+                            this.$nextTick(() => {
+                                const el = document.getElementById('kuro-prod-' + target.id);
+                                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            });
+                        }
                     }
 
                     const { data: cfgData } = await supabaseClient.from('kuro_config').select('*').eq('id', 1).single();
                     if (cfgData) {
                         this.config = cfgData;
                         localStorage.setItem('kuro_config', JSON.stringify(cfgData));
+                        this.applyConfigToKuro(cfgData);
                     }
                     this.checkout.fecha = this.config.fechas_entrega[0] || '';
 
+                    // Escuchar cambios en tiempo real tanto de pedidos como de kuro_config
                     supabaseClient.channel('kuro-client-channel')
                         .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'kuro_pedidos' }, payload => {
                             if (this.activeTicket && payload.new.folio === this.activeTicket.folio) {
                                 this.activeTicket = payload.new;
                             }
-                        }).subscribe();
+                        })
+                        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'kuro_config', filter: 'id=eq.1' }, payload => {
+                            this.config = payload.new;
+                            localStorage.setItem('kuro_config', JSON.stringify(payload.new));
+                            this.applyConfigToKuro(payload.new);
+                        })
+                        .subscribe();
+                },
+
+                filteredKuroProducts() {
+                    return this.kuroProducts.filter(p => p.group === this.kuroSubTab);
+                },
+
+                hasPromo(prod) {
+                    return Boolean(this.promoIntro.active && prod.promoEligible && prod.available !== false && this.promoIntro.discountPct > 0);
+                },
+
+                finalKuroPrice(prod) {
+                    if (!this.hasPromo(prod)) return Number(prod.price);
+                    const factor = Math.max(0, 1 - (Number(this.promoIntro.discountPct) / 100));
+                    return Number((prod.price * factor).toFixed(2));
+                },
+
+                addKuroProductToCart(prod) {
+                    if (prod.available === false) return;
+                    const unitPrice = this.finalKuroPrice(prod);
+                    const label = this.hasPromo(prod)
+                        ? `${prod.categoryLabel} (${this.promoIntro.badgeText || '-' + this.promoIntro.discountPct + '%'})`
+                        : prod.categoryLabel;
+                    this.addToCart(prod.name, unitPrice, prod.cost, label);
                 },
 
                 incrementIngredient(ing, event) { 
