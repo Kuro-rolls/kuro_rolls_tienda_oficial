@@ -486,10 +486,10 @@
                     supabaseClient.channel('kuro-admin-channel')
                         .on('postgres_changes', { event: '*', schema: 'public', table: 'kuro_pedidos' }, () => {
                             this.playBeep();
-                            this.loadDataFromCloud();
+                            this.loadOrdersOnly();
                         }).subscribe();
                         
-                    window.addEventListener('storage', () => this.loadDataFromCloud());
+                    // removed storage event reload to avoid overwriting active edits
                 },
 
                 playBeep() {
@@ -504,6 +504,14 @@
                     } catch (e) {}
                 },
 
+                async loadOrdersOnly() {
+                    const { data: pedData } = await supabaseClient.from('kuro_pedidos').select('*').order('created_at', { ascending: false });
+                    if (pedData) {
+                        this.orders = pedData;
+                        localStorage.setItem('kuro_pedidos', JSON.stringify(pedData));
+                    }
+                },
+
                 async loadDataFromCloud() {
                     const { data: pedData } = await supabaseClient.from('kuro_pedidos').select('*').order('created_at', { ascending: false });
                     if (pedData) {
@@ -513,23 +521,26 @@
                         this.orders = JSON.parse(localStorage.getItem('kuro_pedidos') || '[]');
                     }
 
-                    const { data: cfgData } = await supabaseClient.from('kuro_config').select('*').eq('id', 1).single();
-                    if (cfgData) {
-                        const fallbackPct = cfgData.promo_kuro_pct !== undefined && cfgData.promo_kuro_pct !== null ? Number(cfgData.promo_kuro_pct) : 15;
-                        this.config = {
-                            ...this.config,
-                            ...cfgData,
-                            promo_kuro_activa: typeof cfgData.promo_kuro_activa === 'boolean' ? cfgData.promo_kuro_activa : true,
-                            promo_kuro_pct: fallbackPct,
-                            promo_kuro_texto: cfgData.promo_kuro_texto || 'OFERTA KURO',
-                            shiro_disponible: typeof cfgData.shiro_disponible === 'boolean' ? cfgData.shiro_disponible : true,
-                            shiro_desc_pct: cfgData.shiro_desc_pct !== undefined && cfgData.shiro_desc_pct !== null ? Number(cfgData.shiro_desc_pct) : fallbackPct,
-                            chipotle_250_disponible: typeof cfgData.chipotle_250_disponible === 'boolean' ? cfgData.chipotle_250_disponible : true,
-                            chipotle_250_desc_pct: cfgData.chipotle_250_desc_pct !== undefined && cfgData.chipotle_250_desc_pct !== null ? Number(cfgData.chipotle_250_desc_pct) : fallbackPct,
-                            chipotle_500_disponible: typeof cfgData.chipotle_500_disponible === 'boolean' ? cfgData.chipotle_500_disponible : true,
-                            chipotle_500_desc_pct: cfgData.chipotle_500_desc_pct !== undefined && cfgData.chipotle_500_desc_pct !== null ? Number(cfgData.chipotle_500_desc_pct) : fallbackPct
-                        };
-                        localStorage.setItem('kuro_config', JSON.stringify(this.config));
+                    if (!this._configLoadedOnce) {
+                        const { data: cfgData } = await supabaseClient.from('kuro_config').select('*').eq('id', 1).single();
+                        if (cfgData) {
+                            const fallbackPct = cfgData.promo_kuro_pct !== undefined && cfgData.promo_kuro_pct !== null ? Number(cfgData.promo_kuro_pct) : 15;
+                            this.config = {
+                                ...this.config,
+                                ...cfgData,
+                                promo_kuro_activa: typeof cfgData.promo_kuro_activa === 'boolean' ? cfgData.promo_kuro_activa : true,
+                                promo_kuro_pct: fallbackPct,
+                                promo_kuro_texto: cfgData.promo_kuro_texto || 'OFERTA KURO',
+                                shiro_disponible: typeof cfgData.shiro_disponible === 'boolean' ? cfgData.shiro_disponible : true,
+                                shiro_desc_pct: cfgData.shiro_desc_pct !== undefined && cfgData.shiro_desc_pct !== null ? Number(cfgData.shiro_desc_pct) : fallbackPct,
+                                chipotle_250_disponible: typeof cfgData.chipotle_250_disponible === 'boolean' ? cfgData.chipotle_250_disponible : true,
+                                chipotle_250_desc_pct: cfgData.chipotle_250_desc_pct !== undefined && cfgData.chipotle_250_desc_pct !== null ? Number(cfgData.chipotle_250_desc_pct) : fallbackPct,
+                                chipotle_500_disponible: typeof cfgData.chipotle_500_disponible === 'boolean' ? cfgData.chipotle_500_disponible : true,
+                                chipotle_500_desc_pct: cfgData.chipotle_500_desc_pct !== undefined && cfgData.chipotle_500_desc_pct !== null ? Number(cfgData.chipotle_500_desc_pct) : fallbackPct
+                            };
+                            localStorage.setItem('kuro_config', JSON.stringify(this.config));
+                        }
+                        this._configLoadedOnce = true;
                     }
                     this.fechasTexto = (this.config.fechas_entrega || []).join('\n');
                 },
@@ -546,7 +557,11 @@
                 },
 
                 toggleConfigBool(field) {
-                    this.config[field] = !Boolean(this.config[field]);
+                    const nextVal = !Boolean(this.config[field]);
+                    this.config = {
+                        ...this.config,
+                        [field]: nextVal
+                    };
                 },
 
                 calcDiscountedPrice(basePrice, pct) {
