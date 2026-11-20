@@ -49,7 +49,7 @@
                     5. Asesor IA + Pre-Orden
                 </button>
                 <button @click="view = 'linea-kuro'" :class="view==='linea-kuro' ? 'gold-bg' : 'bg-zinc-900 text-zinc-400'" class="px-4 py-2 rounded-xl transition">
-                    6. Línea KURO
+                    6. Línea KURO & Promos
                 </button>
             </nav>
         </div>
@@ -337,7 +337,7 @@
             </div>
         </section>
 
-        <!-- MÓDULO 6: CONTROL DE LÍNEA KURO (DRINKS & DIPS + DESCUENTOS INDIVIDUALES) -->
+        <!-- MÓDULO 6: CONTROL DE LÍNEA KURO & PROMOS DE INICIO -->
         <section x-show="view === 'linea-kuro'" x-cloak class="space-y-6">
             <div class="bg-zinc-900 border border-yellow-500/40 rounded-2xl p-6 space-y-5">
                 <div class="flex flex-wrap items-center justify-between gap-4 border-b border-zinc-800 pb-4">
@@ -452,6 +452,122 @@
                     </div>
                 </div>
             </div>
+
+            <!-- EDITOR DE PROMOS DE INICIO (COMBOS GANCHO EN LA PORTADA) -->
+            <div class="bg-zinc-900 border border-yellow-500/40 rounded-2xl p-6 space-y-5">
+                <div class="flex flex-wrap items-center justify-between gap-4 border-b border-zinc-800 pb-4">
+                    <div>
+                        <h2 class="text-xl font-extrabold text-yellow-400">Promos Destacadas en Inicio (Combos Gancho)</h2>
+                        <p class="text-xs text-zinc-400 mt-1">Edita nombre, precio, imagen, descripción y los productos incluidos que se suman al carrito.</p>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <button type="button" @click="addNewPromoInicio()"
+                                class="bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-white font-extrabold px-4 py-2.5 rounded-xl text-xs transition cursor-pointer">
+                            + Nueva Promo
+                        </button>
+                        <button type="button" @click="savePromosInicio()"
+                                class="gold-bg font-extrabold px-5 py-2.5 rounded-xl text-xs hover:brightness-110 transition cursor-pointer">
+                            💾 Guardar Promos de Inicio
+                        </button>
+                    </div>
+                </div>
+
+                <div class="grid lg:grid-cols-2 gap-5">
+                    <template x-for="(promo, pIdx) in config.promos_inicio" :key="promo.id">
+                        <div class="bg-black border rounded-2xl p-5 space-y-4" :class="promo.active !== false ? 'border-zinc-800' : 'border-red-900/60 opacity-80'">
+                            <div class="flex items-center justify-between gap-2 border-b border-zinc-800 pb-3">
+                                <div class="flex items-center gap-2">
+                                    <button type="button" @click="promo.active = !(promo.active !== false)"
+                                            class="px-3 py-1 rounded-lg text-xs font-extrabold transition cursor-pointer"
+                                            :class="promo.active !== false ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' : 'bg-zinc-800 text-zinc-400'"
+                                            x-text="promo.active !== false ? '✓ Visible en Inicio' : '✕ Oculta'">
+                                    </button>
+                                    <span class="text-xs font-bold text-zinc-400" x-text="'Promo #' + (pIdx + 1)"></span>
+                                </div>
+                                <button type="button" @click="removePromoInicio(pIdx)"
+                                        class="text-xs font-bold text-red-400 hover:text-red-300 px-2 py-1 rounded">
+                                    Eliminar
+                                </button>
+                            </div>
+
+                            <div class="grid sm:grid-cols-3 gap-3">
+                                <div class="sm:col-span-2">
+                                    <label class="text-[11px] text-zinc-400 block mb-1">Nombre de la Promo</label>
+                                    <input type="text" x-model="promo.name" placeholder="Ej. Combo Dúo KURO"
+                                           class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm font-bold text-white">
+                                </div>
+                                <div>
+                                    <label class="text-[11px] text-zinc-400 block mb-1">Precio Promo ($)</label>
+                                    <input type="number" min="0" step="1" x-model.number="promo.price"
+                                           class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm font-extrabold text-yellow-400">
+                                </div>
+                            </div>
+
+                            <div class="grid sm:grid-cols-2 gap-3">
+                                <div>
+                                    <label class="text-[11px] text-zinc-400 block mb-1">Etiqueta Corta</label>
+                                    <input type="text" x-model="promo.badge" placeholder="Ej. COMBO DÚO"
+                                           class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-xs font-bold uppercase text-yellow-400">
+                                </div>
+                                <div>
+                                    <label class="text-[11px] text-zinc-400 block mb-1">Ruta de Imagen</label>
+                                    <input type="text" x-model="promo.img" placeholder="./img/californiaroll.jpg"
+                                           class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-xs text-zinc-200">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="text-[11px] text-zinc-400 block mb-1">Descripción para el cliente</label>
+                                <input type="text" x-model="promo.description" placeholder="Ej. 2 rollos de especialidad + Shiro frío"
+                                       class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-xs text-white">
+                            </div>
+
+                            <!-- Productos incluidos en la promo (calcula Food Cost automático) -->
+                            <div class="bg-zinc-950 border border-zinc-800 rounded-xl p-3 space-y-2.5">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-[11px] font-extrabold uppercase tracking-wider text-zinc-300">Productos que incluye</span>
+                                    <div class="flex items-center gap-1.5">
+                                        <select x-model="promo._selectedPreset" class="bg-zinc-900 border border-zinc-700 rounded px-2 py-1 text-[11px] text-white">
+                                            <template x-for="opt in promoCatalogOptions" :key="opt.name">
+                                                <option :value="opt.name" x-text="opt.name + ' (costo $' + opt.cost.toFixed(2) + ')'"></option>
+                                            </template>
+                                        </select>
+                                        <button type="button" @click="addProductToPromo(promo)"
+                                                class="gold-bg font-extrabold px-2.5 py-1 rounded text-[11px]">
+                                            + Agregar
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="space-y-1.5">
+                                    <template x-for="(inc, iIdx) in promo.includedItems" :key="iIdx">
+                                        <div class="flex items-center justify-between gap-2 bg-zinc-900/90 border border-zinc-800 px-2.5 py-1.5 rounded-lg text-xs">
+                                            <span class="font-bold text-white flex-1" x-text="inc.name"></span>
+                                            <span class="text-[11px] text-zinc-400" x-text="'Costo c/u: $' + Number(inc.cost || 0).toFixed(2)"></span>
+                                            <div class="flex items-center gap-1.5">
+                                                <button type="button" @click="if (inc.qty > 1) { inc.qty--; } else { promo.includedItems.splice(iIdx, 1); }"
+                                                        class="w-6 h-6 rounded bg-zinc-800 text-white font-bold">-</button>
+                                                <span class="w-4 text-center font-extrabold text-yellow-400" x-text="inc.qty"></span>
+                                                <button type="button" @click="inc.qty++"
+                                                        class="w-6 h-6 rounded gold-bg font-bold">+</button>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+
+                                <div class="flex justify-between items-center border-t border-zinc-800 pt-2 text-[11px]">
+                                    <span class="text-zinc-400">
+                                        Costo insumos: <strong class="text-white" x-text="'$' + promoCostTotal(promo).toFixed(2)"></strong>
+                                        (<span x-text="promoFoodCostPct(promo).toFixed(1) + '%'"></span>)
+                                    </span>
+                                    <span class="font-extrabold text-emerald-400"
+                                          x-text="'Utilidad libre: $' + (Number(promo.price || 0) - promoCostTotal(promo)).toFixed(2)"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
         </section>
 
     </main>
@@ -463,11 +579,59 @@
         const CLABE_STORI_PRIVADA = '646180402320828145';
         const BANCO_DESTINO = 'Stori';
 
+        const DEFAULT_PROMOS_INICIO = [
+            {
+                id: 'combo-duo-kuro',
+                badge: 'COMBO DÚO',
+                name: 'Combo Dúo KURO',
+                description: 'Dos rollos de especialidad a elegir (California Roll + Kani Roll) para compartir.',
+                price: 165,
+                img: './img/californiaroll.jpg',
+                active: true,
+                _selectedPreset: 'California Roll',
+                includedItems: [
+                    { name: 'California Roll', qty: 1, cost: 27.90 },
+                    { name: 'Kani Roll', qty: 1, cost: 28.90 }
+                ]
+            },
+            {
+                id: 'duo-rollo-shiro',
+                badge: 'CON SHIRO',
+                name: 'Pack Steak + Shiro',
+                description: 'Steak Roll recién preparado acompañado de tu Shiro (467 ml) bien frío.',
+                price: 118,
+                img: './img/steakroll.jpg',
+                active: true,
+                _selectedPreset: 'Shiro',
+                includedItems: [
+                    { name: 'Steak Roll', qty: 1, cost: 34.12 },
+                    { name: 'Shiro', qty: 1, cost: 15.00 }
+                ]
+            }
+        ];
+
         function kuroAdminApp() {
             return {
                 view: 'cocina',
                 detailModalOpen: false,
                 detailOrder: null,
+
+                promoCatalogOptions: [
+                    { name: 'California Roll', cost: 27.90 },
+                    { name: 'Kani Roll', cost: 28.90 },
+                    { name: 'Uramaki Roll', cost: 32.66 },
+                    { name: 'Steak Roll', cost: 34.12 },
+                    { name: 'Volcano Roll', cost: 36.56 },
+                    { name: 'Classic Roll', cost: 37.92 },
+                    { name: 'Rollo Personalizado Base', cost: 15.00 },
+                    { name: 'Shiro', cost: 15.00 },
+                    { name: "Dip's Chipotle (250 ml)", cost: 19.50 },
+                    { name: "Dip's Chipotle (500 ml)", cost: 32.50 },
+                    { name: 'Dip Chipotle 1 oz', cost: 2.40 },
+                    { name: 'Dip Chipotle 2 oz', cost: 4.80 },
+                    { name: 'Dip Sriracha 1 oz', cost: 2.20 },
+                    { name: 'Soya Clásica Extra 1 oz', cost: 3.00 }
+                ],
 
                 openOrderDetail(ord) {
                     this.detailOrder = ord;
@@ -564,7 +728,7 @@
                     window.open(url, '_blank');
                 },
 
-                orders: [], // Aquí vivirán TODOS los pedidos, históricos y actuales
+                orders: [],
                 fondoCaja: 500,
                 efectivoContado: 500,
                 fechasTexto: '',
@@ -589,7 +753,8 @@
                     chipotle_250_disponible: true,
                     chipotle_250_desc_pct: 15,
                     chipotle_500_disponible: true,
-                    chipotle_500_desc_pct: 15
+                    chipotle_500_desc_pct: 15,
+                    promos_inicio: JSON.parse(JSON.stringify(DEFAULT_PROMOS_INICIO))
                 },
 
                 async initAdmin() {
@@ -631,21 +796,37 @@
                     }
 
                     if (!this._configLoadedOnce) {
+                        const localCfg = JSON.parse(localStorage.getItem('kuro_config') || 'null');
                         const { data: cfgData } = await supabaseClient.from('kuro_config').select('*').eq('id', 1).single();
-                        if (cfgData) {
-                            const fallbackPct = cfgData.promo_kuro_pct !== undefined && cfgData.promo_kuro_pct !== null ? Number(cfgData.promo_kuro_pct) : 15;
+                        const merged = { ...(localCfg || {}), ...(cfgData || {}) };
+                        if (Object.keys(merged).length > 0) {
+                            const fallbackPct = merged.promo_kuro_pct !== undefined && merged.promo_kuro_pct !== null ? Number(merged.promo_kuro_pct) : 15;
+                            let promos = merged.promos_inicio;
+                            if (typeof promos === 'string') {
+                                try { promos = JSON.parse(promos); } catch (e) { promos = null; }
+                            }
+                            if (!Array.isArray(promos) || promos.length === 0) {
+                                promos = JSON.parse(JSON.stringify(DEFAULT_PROMOS_INICIO));
+                            }
+                            promos = promos.map(p => ({
+                                ...p,
+                                _selectedPreset: p._selectedPreset || 'California Roll',
+                                includedItems: Array.isArray(p.includedItems) ? p.includedItems : []
+                            }));
+
                             this.config = {
                                 ...this.config,
-                                ...cfgData,
-                                promo_kuro_activa: typeof cfgData.promo_kuro_activa === 'boolean' ? cfgData.promo_kuro_activa : true,
+                                ...merged,
+                                promo_kuro_activa: typeof merged.promo_kuro_activa === 'boolean' ? merged.promo_kuro_activa : true,
                                 promo_kuro_pct: fallbackPct,
-                                promo_kuro_texto: cfgData.promo_kuro_texto || 'OFERTA KURO',
-                                shiro_disponible: typeof cfgData.shiro_disponible === 'boolean' ? cfgData.shiro_disponible : true,
-                                shiro_desc_pct: cfgData.shiro_desc_pct !== undefined && cfgData.shiro_desc_pct !== null ? Number(cfgData.shiro_desc_pct) : fallbackPct,
-                                chipotle_250_disponible: typeof cfgData.chipotle_250_disponible === 'boolean' ? cfgData.chipotle_250_disponible : true,
-                                chipotle_250_desc_pct: cfgData.chipotle_250_desc_pct !== undefined && cfgData.chipotle_250_desc_pct !== null ? Number(cfgData.chipotle_250_desc_pct) : fallbackPct,
-                                chipotle_500_disponible: typeof cfgData.chipotle_500_disponible === 'boolean' ? cfgData.chipotle_500_disponible : true,
-                                chipotle_500_desc_pct: cfgData.chipotle_500_desc_pct !== undefined && cfgData.chipotle_500_desc_pct !== null ? Number(cfgData.chipotle_500_desc_pct) : fallbackPct
+                                promo_kuro_texto: merged.promo_kuro_texto || 'OFERTA KURO',
+                                shiro_disponible: typeof merged.shiro_disponible === 'boolean' ? merged.shiro_disponible : true,
+                                shiro_desc_pct: merged.shiro_desc_pct !== undefined && merged.shiro_desc_pct !== null ? Number(merged.shiro_desc_pct) : fallbackPct,
+                                chipotle_250_disponible: typeof merged.chipotle_250_disponible === 'boolean' ? merged.chipotle_250_disponible : true,
+                                chipotle_250_desc_pct: merged.chipotle_250_desc_pct !== undefined && merged.chipotle_250_desc_pct !== null ? Number(merged.chipotle_250_desc_pct) : fallbackPct,
+                                chipotle_500_disponible: typeof merged.chipotle_500_disponible === 'boolean' ? merged.chipotle_500_disponible : true,
+                                chipotle_500_desc_pct: merged.chipotle_500_desc_pct !== undefined && merged.chipotle_500_desc_pct !== null ? Number(merged.chipotle_500_desc_pct) : fallbackPct,
+                                promos_inicio: promos
                             };
                             localStorage.setItem('kuro_config', JSON.stringify(this.config));
                         }
@@ -660,7 +841,15 @@
                 },
 
                 async saveConfig() {
-                    await supabaseClient.from('kuro_config').upsert([{ id: 1, ...this.config }]);
+                    const cleanCfg = { ...this.config };
+                    if (Array.isArray(cleanCfg.promos_inicio)) {
+                        cleanCfg.promos_inicio = cleanCfg.promos_inicio.map(({ _selectedPreset, ...rest }) => rest);
+                    }
+                    const { error } = await supabaseClient.from('kuro_config').upsert([{ id: 1, ...cleanCfg }]);
+                    if (error) {
+                        const { promos_inicio, ...withoutPromos } = cleanCfg;
+                        await supabaseClient.from('kuro_config').upsert([{ id: 1, ...withoutPromos }]);
+                    }
                     localStorage.setItem('kuro_config', JSON.stringify(this.config));
                     alert('Configuración guardada en Supabase en tiempo real.');
                 },
@@ -704,6 +893,70 @@
                     this.config = { ...this.config, ...payload };
                     localStorage.setItem('kuro_config', JSON.stringify(this.config));
                     alert('Línea KURO guardada con descuentos individuales.');
+                },
+
+                addNewPromoInicio() {
+                    this.config.promos_inicio.push({
+                        id: 'promo-' + Date.now(),
+                        badge: 'PROMO KURO',
+                        name: 'Nuevo Combo KURO',
+                        description: 'Describe aquí qué incluye esta promoción.',
+                        price: 150,
+                        img: './img/californiaroll.jpg',
+                        active: true,
+                        _selectedPreset: 'California Roll',
+                        includedItems: [
+                            { name: 'California Roll', qty: 1, cost: 27.90 }
+                        ]
+                    });
+                },
+
+                removePromoInicio(idx) {
+                    if (confirm('¿Eliminar esta promoción de Inicio?')) {
+                        this.config.promos_inicio.splice(idx, 1);
+                    }
+                },
+
+                addProductToPromo(promo) {
+                    const selectedName = promo._selectedPreset || 'California Roll';
+                    const opt = this.promoCatalogOptions.find(o => o.name === selectedName) || { name: selectedName, cost: 25 };
+                    if (!Array.isArray(promo.includedItems)) promo.includedItems = [];
+                    const ex = promo.includedItems.find(i => i.name === opt.name);
+                    if (ex) {
+                        ex.qty++;
+                    } else {
+                        promo.includedItems.push({ name: opt.name, qty: 1, cost: Number(opt.cost) });
+                    }
+                },
+
+                promoCostTotal(promo) {
+                    const inc = Array.isArray(promo?.includedItems) ? promo.includedItems : [];
+                    return Number(inc.reduce((s, x) => s + (Number(x.cost || 0) * Number(x.qty || 0)), 0).toFixed(2));
+                },
+
+                promoFoodCostPct(promo) {
+                    const price = Number(promo?.price || 0);
+                    if (price <= 0) return 0;
+                    return (this.promoCostTotal(promo) / price) * 100;
+                },
+
+                async savePromosInicio() {
+                    const cleanPromos = (this.config.promos_inicio || []).map(({ _selectedPreset, ...rest }) => ({
+                        ...rest,
+                        price: Number(rest.price || 0),
+                        active: rest.active !== false
+                    }));
+                    localStorage.setItem('kuro_config', JSON.stringify(this.config));
+
+                    const { error } = await supabaseClient
+                        .from('kuro_config')
+                        .upsert([{ id: 1, promos_inicio: cleanPromos }]);
+
+                    if (error) {
+                        alert('Promos guardadas en este navegador. (Para sincronizarlas en todos los dispositivos por Supabase, agrega la columna "promos_inicio" de tipo jsonb en la tabla kuro_config).');
+                        return;
+                    }
+                    alert('✅ Promos de Inicio guardadas y sincronizadas en Supabase.');
                 },
 
                 async savePreorderDates() {
