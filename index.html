@@ -191,20 +191,84 @@
                             </button>
                         </div>
                     </div>
-                    <div class="flame-video-frame">
+                    <div class="flame-video-frame cursor-pointer group"
+                         role="button"
+                         tabindex="0"
+                         title="Ir a Shiro y agregar a mi orden"
+                         @click="goToKuroProduct('shiro')"
+                         @keydown.enter.prevent="goToKuroProduct('shiro')">
                         <div class="relative rounded-2xl overflow-hidden bg-black aspect-video">
                             <video class="w-full h-full object-cover" autoplay loop muted playsinline poster="./img/shiro-467ml.jpg">
                                 <source src="./img/SHIROCOMERCIALCLASSIC.mp4" type="video/mp4">
                             </video>
-                            <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent pointer-events-none"></div>
-                            <div class="absolute bottom-3 left-3 bg-black/80 backdrop-blur-md border border-yellow-500/40 px-3.5 py-1.5 rounded-full flex items-center gap-2 text-xs font-bold gold-text">
-                                <span class="flame-dot"></span>
-                                <span>SHIRO • Bebida Láctea Cítrica</span>
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-transparent pointer-events-none"></div>
+                            <div class="absolute bottom-3 left-3 right-3 flex items-center justify-between gap-2 pointer-events-none">
+                                <div class="bg-black/80 backdrop-blur-md border border-yellow-500/40 px-3.5 py-1.5 rounded-full flex items-center gap-2 text-xs font-bold gold-text">
+                                    <span class="flame-dot"></span>
+                                    <span>SHIRO • Bebida Láctea Cítrica</span>
+                                </div>
+                                <span class="bg-yellow-500 text-black text-[11px] font-extrabold px-3 py-1.5 rounded-full shadow-lg group-hover:scale-105 transition">
+                                    Pedir Shiro →
+                                </span>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+
+            <!-- PROMOS DESTACADAS EN INICIO (ESTILO ESPECIALIDAD / ANUNCIO SHIRO) -->
+            <template x-if="activePromosInicio().length > 0">
+                <div class="space-y-5 text-left">
+                    <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-2 border-b border-zinc-800 pb-3">
+                        <div>
+                            <span class="text-[11px] uppercase tracking-widest gold-text font-bold">PROMOS DE TEMPORADA</span>
+                            <h3 class="font-serif-kuro text-2xl md:text-3xl text-white font-bold mt-0.5">Combos y Promos KURO</h3>
+                        </div>
+                        <p class="text-xs text-zinc-400">Ajusta la cantidad y súmala directo a tu orden.</p>
+                    </div>
+
+                    <div class="grid sm:grid-cols-2 gap-6">
+                        <template x-for="promo in activePromosInicio()" :key="promo.id">
+                            <article class="kuro-card bg-[#0c0c0c] border border-yellow-500/45 rounded-2xl p-5 flex flex-col justify-between shadow-xl hover:border-yellow-400"
+                                     :class="getPromoCartQty(promo) > 0 ? 'kuro-card-active' : ''">
+                                <div class="flex justify-between items-start gap-4 mb-4 relative z-10">
+                                    <div class="flex-1">
+                                        <div class="flex items-center gap-2 mb-1.5">
+                                            <span class="text-[10px] uppercase tracking-wider bg-yellow-500/15 text-yellow-400 border border-yellow-500/40 px-2 py-0.5 rounded font-extrabold"
+                                                  x-text="promo.badge || 'PROMO KURO'"></span>
+                                        </div>
+                                        <div class="flex justify-between items-baseline gap-2 mb-2">
+                                            <h4 class="font-serif-kuro text-xl text-white font-bold leading-tight" x-text="promo.name"></h4>
+                                            <span class="text-2xl font-extrabold gold-text shrink-0" x-text="'$' + Number(promo.price || 0).toFixed(0)"></span>
+                                        </div>
+                                        <p class="text-xs text-zinc-300 leading-relaxed mb-2" x-text="promo.description"></p>
+                                        <p class="text-[11px] text-zinc-400 leading-relaxed" x-show="promoIncludesText(promo)">
+                                            <strong class="text-white">Incluye:</strong> <span x-text="promoIncludesText(promo)"></span>
+                                        </p>
+                                    </div>
+                                    <div class="kuro-img-box w-24 h-24 rounded-xl border border-zinc-800 bg-zinc-900 shadow-md">
+                                        <img :src="promo.img || './img/shiroclassic.jpg'" :alt="promo.name" onerror="this.src='https://images.unsplash.com/photo-1579871494447-9811cf80d66c?auto=format&fit=crop&q=80&w=300'">
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center justify-between gap-3 pt-3 border-t border-zinc-800/80 relative z-10">
+                                    <span class="text-[11px] text-zinc-400 font-semibold">Cantidad:</span>
+                                    <div class="flex items-center gap-2.5">
+                                        <button type="button"
+                                                @click="decrementPromoInCart(promo, $event)"
+                                                class="w-8 h-8 rounded-lg bg-[#222222] text-white font-extrabold hover:bg-zinc-700 active:scale-90 transition flex items-center justify-center">-</button>
+                                        <span class="w-6 text-center font-extrabold text-sm text-white select-none"
+                                              x-text="getPromoCartQty(promo)">0</span>
+                                        <button type="button"
+                                                @click="incrementPromoInCart(promo, $event)"
+                                                class="w-8 h-8 rounded-lg gold-bg font-extrabold hover:brightness-110 hover:shadow-[0_0_12px_rgba(234,179,8,0.5)] active:scale-90 transition flex items-center justify-center">+</button>
+                                    </div>
+                                </div>
+                            </article>
+                        </template>
+                    </div>
+                </div>
+            </template>
 
             <div class="grid md:grid-cols-2 gap-6 text-left">
                 <div class="kuro-card bg-zinc-900/60 border border-zinc-800/80 p-6 rounded-xl">
@@ -445,6 +509,39 @@
         <section x-show="tab === 'seleccion'" x-transition x-cloak class="max-w-2xl mx-auto space-y-6">
             <h2 class="font-serif-kuro text-3xl gold-text text-center">Tu Pre-Orden KURO</h2>
 
+            <!-- AVISO PARA SUMAR SHIRO CON BOTÓN CERRAR "×" -->
+            <template x-if="cart.length > 0 && showShiroUpsell && !hasShiroInCart() && shiroProduct()?.available !== false">
+                <div class="relative bg-gradient-to-r from-zinc-900 via-[#151208] to-zinc-900 border border-yellow-500/50 rounded-2xl p-4 pr-10 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-lg">
+                    <button type="button"
+                            @click="showShiroUpsell = false"
+                            aria-label="Cerrar aviso de Shiro"
+                            title="Cerrar aviso"
+                            class="absolute top-2.5 right-2.5 w-7 h-7 rounded-full bg-black/70 hover:bg-zinc-800 border border-zinc-700 text-zinc-300 hover:text-white text-xs font-extrabold flex items-center justify-center transition cursor-pointer">
+                        ×
+                    </button>
+
+                    <div class="flex items-center gap-3.5 w-full sm:w-auto">
+                        <div class="kuro-img-box w-14 h-14 rounded-xl border border-yellow-500/30 bg-black">
+                            <img :src="shiroProduct()?.img || './img/shiroclassic.jpg'" alt="Shiro" onerror="this.src='https://images.unsplash.com/photo-1544145945-f90425340c7e?auto=format&fit=crop&q=80&w=150'">
+                        </div>
+                        <div>
+                            <span class="text-[10px] uppercase tracking-widest gold-text font-extrabold">¿SE ANTOJA ACOMPAÑAR?</span>
+                            <p class="text-sm font-extrabold text-white">Suma tu Shiro (467 ml)</p>
+                            <p class="text-xs text-zinc-400">
+                                Bebida láctea cítrica bien fría por
+                                <strong class="gold-text" x-text="'$' + finalKuroPrice(shiroProduct()).toFixed(2)"></strong>
+                            </p>
+                        </div>
+                    </div>
+
+                    <button type="button"
+                            @click="addKuroProductToCart(shiroProduct())"
+                            class="btn-shimmer w-full sm:w-auto gold-bg font-extrabold px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider shrink-0 cursor-pointer">
+                        + Sumar Shiro
+                    </button>
+                </div>
+            </template>
+
             <div class="bg-zinc-900/70 border border-zinc-800 rounded-xl p-5 space-y-4">
                 <template x-if="cart.length === 0">
                     <p class="text-center text-zinc-500 py-6">Tu carrito está vacío. ¡Arma tu rollo o elige una especialidad!</p>
@@ -628,6 +725,35 @@
         const SUPABASE_ANON_KEY = 'sb_publishable_CaJMGbjeOwoXJladyQ39tA_HsmS1meK';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+        const DEFAULT_PROMOS_INICIO = [
+            {
+                id: 'combo-duo-kuro',
+                badge: 'COMBO DÚO',
+                name: 'Combo Dúo KURO',
+                description: 'Dos rollos de especialidad a elegir (California Roll + Kani Roll) para compartir.',
+                price: 165,
+                img: './img/californiaroll.jpg',
+                active: true,
+                includedItems: [
+                    { name: 'California Roll', qty: 1, cost: 27.90 },
+                    { name: 'Kani Roll', qty: 1, cost: 28.90 }
+                ]
+            },
+            {
+                id: 'duo-rollo-shiro',
+                badge: 'CON SHIRO',
+                name: 'Pack Steak + Shiro',
+                description: 'Steak Roll recién preparado acompañado de tu Shiro (467 ml) bien frío.',
+                price: 118,
+                img: './img/steakroll.jpg',
+                active: true,
+                includedItems: [
+                    { name: 'Steak Roll', qty: 1, cost: 34.12 },
+                    { name: 'Shiro', qty: 1, cost: 15.00 }
+                ]
+            }
+        ];
+
         function kuroClientApp() {
             return {
                 tab: 'inicio',
@@ -641,6 +767,7 @@
                 submitting: false,
                 toastMessage: '',
                 isVip: false,
+                showShiroUpsell: true,
 
                 promoIntro: {
                     active: true,
@@ -648,6 +775,8 @@
                     badgeText: 'PRUEBA -15%',
                     note: 'Precio especial.'
                 },
+
+                promosInicio: JSON.parse(JSON.stringify(DEFAULT_PROMOS_INICIO)),
 
                 kuroProducts: [
                     {
@@ -804,10 +933,10 @@
                     {
                         category: 'Acompañamientos y Aderezos Extra (1 oz y 2 oz)',
                         items: [
-                            { id: 'cc1', name: 'Chipotle Cream 1 oz', price: 6, cost: 2.40, qty: 0, img: './img/chipotlecream1oz.jpg' },
-                            { id: 'cc2', name: 'Chipotle Cream 2 oz', price: 9, cost: 4.80, qty: 0, img: './img/chipotlecream2oz.jpg' },
-                            { id: 'sc1', name: 'Sriracha Cream 1 oz', price: 6, cost: 2.20, qty: 0, img: './img/sriracha_cream1oz.jpg' },
-                            { id: 'sc2', name: 'Sriracha Cream 2 oz', price: 9, cost: 4.40, qty: 0, img: './img/sriracha_cream2oz.jpg' },
+                            { id: 'cc1', name: 'Dip Chipotle 1 oz', price: 6, cost: 2.40, qty: 0, img: './img/chipotlecream1oz.jpg' },
+                            { id: 'cc2', name: 'Dip Chipotle 2 oz', price: 9, cost: 4.80, qty: 0, img: './img/chipotlecream2oz.jpg' },
+                            { id: 'sc1', name: 'Dip Sriracha 1 oz', price: 6, cost: 2.20, qty: 0, img: './img/sriracha_cream1oz.jpg' },
+                            { id: 'sc2', name: 'Dip Sriracha 2 oz', price: 9, cost: 4.40, qty: 0, img: './img/sriracha_cream2oz.jpg' },
                             { id: 'so1', name: 'Soya Clásica Extra 1 oz', price: 5, cost: 3.00, qty: 0, img: './img/soyatradicional1oz.jpg' },
                             { id: 'so2', name: 'Soya Clásica Extra 2 oz', price: 7, cost: 5.00, qty: 0, img: './img/soyatradicional2oz.jpg' },
                             { id: 'sp1', name: 'Soya Picante 1 oz', price: 6, cost: 4.00, qty: 0, img: './img/soyapicante1oz.jpg' },
@@ -830,7 +959,7 @@
                         pf: 'Ajonjolí bicolor', pd: 'Surimi, queso philadelphia, pepino y aguacate', img: './img/californiaroll.jpg' 
                     },
                     { 
-                        name: 'Jaiba Roll', price: 85, cost: 28.90, 
+                        name: 'Kani Roll', price: 85, cost: 28.90, 
                         pf: 'Empanizado', pd: 'Surimi, philadelphia y aguacate', img: './img/jaiba roll.jpg' 
                     },
                     { 
@@ -844,10 +973,10 @@
                 ],
 
                 sides: [
-                    { name: 'Chipotle Cream 1 oz', price: 6, cost: 2.40, img: './img/chipotlecream1oz.jpg' },
-                    { name: 'Chipotle Cream 2 oz', price: 9, cost: 4.80, img: './img/chipotlecream2oz.jpg' },
-                    { name: 'Sriracha Cream 1 oz', price: 6, cost: 2.20, img: './img/sriracha_cream1oz.jpg' },
-                    { name: 'Sriracha Cream 2 oz', price: 9, cost: 4.40, img: './img/sriracha_cream2oz.jpg' },
+                    { name: 'Dip Chipotle 1 oz', price: 6, cost: 2.40, img: './img/chipotlecream1oz.jpg' },
+                    { name: 'Dip Chipotle 2 oz', price: 9, cost: 4.80, img: './img/chipotlecream2oz.jpg' },
+                    { name: 'Dip Sriracha 1 oz', price: 6, cost: 2.20, img: './img/sriracha_cream1oz.jpg' },
+                    { name: 'Dip Sriracha 2 oz', price: 9, cost: 4.40, img: './img/sriracha_cream2oz.jpg' },
                     { name: 'Soya Clásica Extra 1 oz', price: 5, cost: 3.00, img: './img/soyatradicional1oz.jpg' },
                     { name: 'Soya Clásica Extra 2 oz', price: 7, cost: 5.00, img: './img/soyatradicional2oz.jpg' },
                     { name: 'Soya Picante 1 oz', price: 6, cost: 4.00, img: './img/soyapicante1oz.jpg' },
@@ -883,9 +1012,31 @@
                         else if (typeof cfgData.chipotle_disponible === 'boolean') dip500.available = cfgData.chipotle_disponible;
                         dip500.discountPct = cfgData.chipotle_500_desc_pct !== undefined && cfgData.chipotle_500_desc_pct !== null ? Number(cfgData.chipotle_500_desc_pct) : fallbackPct;
                     }
+
+                    let loadedPromos = cfgData.promos_inicio;
+                    if (typeof loadedPromos === 'string') {
+                        try { loadedPromos = JSON.parse(loadedPromos); } catch (e) { loadedPromos = null; }
+                    }
+                    if (!Array.isArray(loadedPromos)) {
+                        try {
+                            const localCfg = JSON.parse(localStorage.getItem('kuro_config') || 'null');
+                            if (Array.isArray(localCfg?.promos_inicio)) loadedPromos = localCfg.promos_inicio;
+                        } catch (e) {}
+                    }
+                    if (Array.isArray(loadedPromos) && loadedPromos.length > 0) {
+                        this.promosInicio = loadedPromos;
+                    }
                 },
 
                 async initApp() {
+                    try {
+                        const localCfg = JSON.parse(localStorage.getItem('kuro_config') || 'null');
+                        if (localCfg) {
+                            this.config = { ...this.config, ...localCfg };
+                            this.applyConfigToKuro(localCfg);
+                        }
+                    } catch (e) {}
+
                     const urlParams = new URLSearchParams(window.location.search);
                     if (urlParams.get('kuro') === 'vip') {
                         this.isVip = true;
@@ -917,9 +1068,9 @@
 
                     const { data: cfgData } = await supabaseClient.from('kuro_config').select('*').eq('id', 1).single();
                     if (cfgData) {
-                        this.config = cfgData;
-                        localStorage.setItem('kuro_config', JSON.stringify(cfgData));
-                        this.applyConfigToKuro(cfgData);
+                        this.config = { ...this.config, ...cfgData };
+                        localStorage.setItem('kuro_config', JSON.stringify(this.config));
+                        this.applyConfigToKuro(this.config);
                     }
                     this.checkout.fecha = this.config.fechas_entrega[0] || '';
 
@@ -930,11 +1081,97 @@
                             }
                         })
                         .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'kuro_config', filter: 'id=eq.1' }, payload => {
-                            this.config = payload.new;
-                            localStorage.setItem('kuro_config', JSON.stringify(payload.new));
-                            this.applyConfigToKuro(payload.new);
+                            this.config = { ...this.config, ...payload.new };
+                            localStorage.setItem('kuro_config', JSON.stringify(this.config));
+                            this.applyConfigToKuro(this.config);
                         })
                         .subscribe();
+                },
+
+                goToKuroProduct(prodId) {
+                    const target = this.kuroProducts.find(p => p.id === prodId);
+                    this.tab = 'linea-kuro';
+                    if (target) {
+                        this.kuroSubTab = target.group;
+                    }
+                    this.$nextTick(() => {
+                        const el = document.getElementById('kuro-prod-' + prodId);
+                        if (el) {
+                            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            el.classList.add('ring-2', 'ring-yellow-400', 'ring-offset-2', 'ring-offset-black');
+                            setTimeout(() => {
+                                el.classList.remove('ring-2', 'ring-yellow-400', 'ring-offset-2', 'ring-offset-black');
+                            }, 1800);
+                        }
+                    });
+                },
+
+                activePromosInicio() {
+                    return (this.promosInicio || []).filter(p => p && p.active !== false && String(p.name || '').trim() !== '');
+                },
+
+                promoDetailsString(promo) {
+                    const inc = Array.isArray(promo?.includedItems) ? promo.includedItems.filter(x => Number(x.qty || 0) > 0) : [];
+                    const incTxt = inc.map(x => `${x.qty}x ${x.name}`).join(' + ');
+                    if (incTxt && promo.description) return `Promo (${incTxt}) • ${promo.description}`;
+                    if (incTxt) return `Promo (${incTxt})`;
+                    return promo.description || 'Promo KURO';
+                },
+
+                promoIncludesText(promo) {
+                    const inc = Array.isArray(promo?.includedItems) ? promo.includedItems.filter(x => Number(x.qty || 0) > 0) : [];
+                    return inc.map(x => `${x.qty}x ${x.name}`).join(' + ');
+                },
+
+                promoUnitCost(promo) {
+                    const inc = Array.isArray(promo?.includedItems) ? promo.includedItems : [];
+                    return Number(inc.reduce((s, x) => s + (Number(x.cost || 0) * Number(x.qty || 0)), 0).toFixed(2));
+                },
+
+                getPromoCartQty(promo) {
+                    const found = this.cart.find(i => i.promoId === promo.id || (i.name === promo.name && i.isPromo));
+                    return found ? found.qty : 0;
+                },
+
+                incrementPromoInCart(promo, event) {
+                    const price = Number(promo.price || 0);
+                    const cost = this.promoUnitCost(promo);
+                    const details = this.promoDetailsString(promo);
+                    const ex = this.cart.find(i => i.promoId === promo.id || (i.name === promo.name && i.isPromo));
+                    if (ex) {
+                        ex.qty++;
+                        ex.price = price;
+                        ex.cost = cost;
+                        ex.details = details;
+                    } else {
+                        this.cart.push({
+                            name: promo.name,
+                            details,
+                            price,
+                            cost,
+                            qty: 1,
+                            isPromo: true,
+                            promoId: promo.id
+                        });
+                    }
+                    this.triggerQtyBump(event);
+                    this.showToast(`${promo.name} agregado`);
+                },
+
+                decrementPromoInCart(promo, event) {
+                    const idx = this.cart.findIndex(i => i.promoId === promo.id || (i.name === promo.name && i.isPromo));
+                    if (idx !== -1) {
+                        this.decrementCart(idx);
+                        this.triggerQtyBump(event);
+                    }
+                },
+
+                shiroProduct() {
+                    return this.kuroProducts.find(p => p.id === 'shiro');
+                },
+
+                hasShiroInCart() {
+                    return this.cart.some(i => i.name === 'Shiro' || (i.details && i.details.includes('Shiro')));
                 },
 
                 filteredKuroProducts() {
@@ -942,6 +1179,7 @@
                 },
 
                 getProdDiscountPct(prod) {
+                    if (!prod) return 0;
                     if (!this.promoIntro.active || !prod.promoEligible || prod.available === false) return 0;
                     const pct = prod.discountPct !== undefined && prod.discountPct !== null ? Number(prod.discountPct) : Number(this.promoIntro.discountPct || 0);
                     return Math.max(0, Math.min(95, pct));
@@ -952,6 +1190,7 @@
                 },
 
                 finalKuroPrice(prod) {
+                    if (!prod) return 0;
                     const pct = this.getProdDiscountPct(prod);
                     if (pct <= 0) return Number(prod.price);
                     const factor = Math.max(0, 1 - (pct / 100));
@@ -959,7 +1198,7 @@
                 },
 
                 addKuroProductToCart(prod) {
-                    if (prod.available === false) return;
+                    if (!prod || prod.available === false) return;
                     const pct = this.getProdDiscountPct(prod);
                     const unitPrice = this.finalKuroPrice(prod);
                     const label = pct > 0
